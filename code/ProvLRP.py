@@ -63,18 +63,18 @@ class Semiring():
         return s
     
     def lower_bound(shape, bound):
-        return np.vectorize(from_activation)(bound*np.ones(shape))
+        return np.vectorize(Semiring.from_activation)(bound*np.ones(shape))
 
     def upper_bound(shape, bound):
-        return np.vectorize(from_activation)(bound*np.ones(shape))
+        return np.vectorize(Semiring.from_activation)(bound*np.ones(shape))
     
-from_activation = np.vectorize(lambda x : Semiring(activation=x))
-from_weight = np.vectorize(lambda x : Semiring(weight=x))
-pos = np.vectorize(lambda x : x.pos())
-neg = np.vectorize(lambda x : x.neg())
+    from_activation = np.vectorize(lambda x : Semiring(activation=x))
+    from_weight = np.vectorize(lambda x : Semiring(weight=x))
+    vect_pos = np.vectorize(lambda x : x.pos())
+    vect_neg = np.vectorize(lambda x : x.neg())
 
-def from_relevance(m):
-    return np.array([[Semiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
+    def from_relevance(m):
+        return np.array([[Semiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
 
-def semiring_to_float(m):
-    return np.array([[m[x][y].to_float() for y in range(m.shape[1])] for x in range(m.shape[0])])
+    def semiring_to_float(m):
+        return np.array([[m[x][y].to_float() for y in range(m.shape[1])] for x in range(m.shape[0])])
