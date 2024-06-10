@@ -81,10 +81,10 @@ class Semiring():
         return np.array([[m[x][y].to_float() for y in range(m.shape[1])] for x in range(m.shape[0])])
     
     def __repr__(self):
-        return f"Semiring({self.value})"
+        return f"{self.__class__.__name__}({self.value})"
     
 
-class BooleanSemiring():
+class BooleanSemiring(Semiring):
     def threshold(value, theta):
         if value is None:
             return None
@@ -145,14 +145,8 @@ class BooleanSemiring():
     def from_relevance(m):
         return np.array([[BooleanSemiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
 
-    def semiring_to_float(m):
-        return np.array([[m[x][y].to_float() for y in range(m.shape[1])] for x in range(m.shape[0])])
-    
-    def __repr__(self):
-        return f"BooleanSemiring({self.value})"
 
-
-class TropicalSemiring():
+class TropicalSemiring(Semiring):
     def handle_initialisation(self, not_none, n1, n2):
         if not_none is not None:
             assert isinstance(not_none, numbers.Number), f"must be a number, is of type {type(not_none)}"
@@ -194,15 +188,9 @@ class TropicalSemiring():
 
     def from_relevance(m):
         return np.array([[TropicalSemiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
-
-    def semiring_to_float(m):
-        return np.array([[m[x][y].to_float() for y in range(m.shape[1])] for x in range(m.shape[0])])
-    
-    def __repr__(self):
-        return f"TropicalSemiring({self.value})"
     
 
-class CountingSemiring():
+class CountingSemiring(Semiring):
     def threshold(value, theta):
         if value is None:
             return None
@@ -262,9 +250,3 @@ class CountingSemiring():
 
     def from_relevance(m):
         return np.array([[CountingSemiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
-
-    def semiring_to_float(m):
-        return np.array([[m[x][y].to_float() for y in range(m.shape[1])] for x in range(m.shape[0])])
-    
-    def __repr__(self):
-        return f"CountingSemiring({self.value})"
