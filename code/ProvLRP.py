@@ -156,7 +156,7 @@ class TropicalSemiring():
     def handle_initialisation(self, not_none, n1, n2):
         if not_none is not None:
             assert isinstance(not_none, numbers.Number), f"must be a number, is of type {type(not_none)}"
-            self.value = np.max(0, not_none)
+            self.value = max(0, not_none)
             if n1 is not None or n2 is not None:
                 raise MultipleInitialisation
                     
@@ -184,7 +184,7 @@ class TropicalSemiring():
         return self.value
     
     def __add__(self, b):
-        f = np.min(self.value, b.value)
+        f = min(self.value, b.value)
         s = TropicalSemiring()
         s.value = f
         return s
