@@ -1,5 +1,6 @@
 import numpy as np
 import numbers
+import ProvLRP_config
 
 class MultipleInitialisation(Exception):
     pass
@@ -100,15 +101,15 @@ class BooleanSemiring():
                 raise MultipleInitialisation
                     
     def handle_relevance(self, relevance, n1, n2):
-        relevance_b = BooleanSemiring.threshold(relevance, 0)
+        relevance_b = BooleanSemiring.threshold(relevance, ProvLRP_config.boolean_relevance_threshold)
         self.handle_initialisation(relevance_b, n1, n2)
 
     def handle_activation(self, activation, n1, n2):
-        activation_b = BooleanSemiring.threshold(activation, 0.5)
+        activation_b = BooleanSemiring.threshold(activation, ProvLRP_config.boolean_activation_threshold)
         self.handle_initialisation(activation_b, n1, n2)
     
     def handle_weight(self, weight, n1, n2):
-        weight_b = BooleanSemiring.threshold(weight, 0)
+        weight_b = BooleanSemiring.threshold(weight, ProvLRP_config.boolean_weight_threshold)
         self.handle_initialisation(weight_b, n1, n2)
 
     def __init__(self, relevance=None, activation=None, weight=None):
