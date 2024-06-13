@@ -1,3 +1,8 @@
+"""
+    Developed by Gregoire Montavon
+    https://git.tu-berlin.de/gmontavon/lrp-tutorial
+"""
+
 import numpy
 import copy
 import matplotlib

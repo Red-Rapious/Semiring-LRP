@@ -1,7 +1,5 @@
 """
-A series of helper functions used throughout the course.
-
-If a function gets defined once and could be used over and over, it'll go in here.
+Downloaded from https://www.learnpytorch.io
 """
 import torch
 import matplotlib.pyplot as plt

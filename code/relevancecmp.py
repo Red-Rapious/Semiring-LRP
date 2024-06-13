@@ -1,3 +1,8 @@
+"""
+    Small library to compare relevances obtained by different LRP techniques.
+    by Antoine Groudiev
+"""
+
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np

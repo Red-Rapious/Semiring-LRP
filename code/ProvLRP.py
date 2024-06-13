@@ -1,3 +1,8 @@
+"""
+    Library implementing different semirings for provenance-based LRP.
+    by Antoine Groudiev
+"""
+
 import numpy as np
 import numbers
 import ProvLRP_config
