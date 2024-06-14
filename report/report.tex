@@ -66,6 +66,31 @@ Notably, the input layer must be handled using a different rule, since it does n
 where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_i$ and $h_i$ respectively define the theoretical minimum and maximum values of the inputs $x_i$; for instance we might have $l_i=0$ and $h_i=255$ for pixels over 8 bits.
 
 \subsection{Semiring-based provenance annotations}
+In parallel, the notion of data provenance in databases theory developed formal solutions to a similar problem to ours. Data provenance aims at \emph{explaning} a query by highlighting the tuples in the original database that led to the presence of a certain tuple in the query result. If contexts are different, deep neural networks explanation and data provenance share the same general setup: identifying a subset of the input that directly implied a certain output.
+
+A framework to approach data provenance is \emph{provenance semirings}, introduced in \cite{green-2007}, annotates tuples using abstract elements of a semiring and apply semiring operations to the tuples appearing in the query. As the query is executed, information about the provenance of the intermediate results is aggregated, resulting in an abstract formula that can be concretized by substituting abstract elements and operations by a concrete semiring. Similarly, in the context of graph databases, edges can be annotated to derive a variety of properties of the query result. \cite{ramusat-prov}
+
+In the following, we provide a mathematical definition of a semiring as well as semiring examples suited for the application to deep neural networks.
+
+\begin{definition}[Semiring]
+    A \emph{semiring} is an algebraic structure generalizing the notion of rings. A semiring $(\mathbb{K}, \oplus, \otimes, \vmathbb{0}, \vmathbb{1})$ is composed of a set $\mathbb{K}$, binary operators $\oplus$ and $\otimes$ such that $\otimes$ distributes over $\oplus$, verifying the following properties:
+    \begin{itemize}
+        \item $(\mathbb{K}, \oplus, \vmathbb{0})$ is a commutative monoid
+        \item $(\mathbb{K}, \otimes, \vmathbb{1})$ is a monoid such that $\vmathbb{0}$ is absorbing
+    \end{itemize}
+\end{definition}
+
+\begin{example}
+    $(\R, +, \times, 0, 1)$ is a semiring. While it has no direct interpretation is the context of databases, we will see that is corresponds to the basic real-valued LRP.
+\end{example}
+
+\begin{example}[Boolean semiring]
+    $(\{\bot, \top\}, \lor, \land, \bot, \top)$ is a semiring. Its use in databases provenance interprets as the existence of a path between two vertices, using edge weights as the number of different paths between two adjacent vertices. 
+\end{example}
+
+\begin{example}[Counting semiring]
+    $(\mathbb{N}, +, \times, 0, 1)$ is a semiring. For a non-cyclic graph database, its use allows to compute the total number of paths between two vertices, using edge weights as the number of different paths between two adjacent vertices.
+\end{example}
 
 \newpage
 \nocite{*}
