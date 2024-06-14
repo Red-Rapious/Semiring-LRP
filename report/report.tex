@@ -12,7 +12,7 @@
 
 \begin{document}
 \begin{abstract}
-    Recently, neural networks allowed computers to solve numerous problems from diverse machine learning fields, such as natural language processsing and computer vision. Compared to traditional algorithms, machine learning models have proven both more successful and more difficult to interpret. Neural networks are considered as black boxes unable to easily explain itself, that is justifying the reasons that led him to make a prediction. Layer-wise Relevance Propagation (LRP) is a technique that has been introduced to provide explanability by identifying the input features relevant to the output choice. In parallel, research in the databases field developed annotations techniques to compute provenance for queries. In this paper, we extend LRP propagation rules to semiring-based provenance annotations of the network, for LRP to gain in expressivity.
+    Recently, neural networks allowed computers to solve numerous problems from diverse machine learning fields, such as natural language processsing and computer vision. Compared to traditional algorithms, machine learning models have proven both more successful and more difficult to interpret. Neural networks are considered as black boxes unable to easily explain themselves, that is justifying the reasons that led them to make a prediction. Layer-wise Relevance Propagation (LRP) is a technique that has been introduced to provide explanability by identifying the input features relevant to the output choice. In parallel, research in the databases field developed annotations techniques to compute provenance for queries. In this paper, we extend LRP propagation rules to semiring-based provenance annotations of the network, for LRP to gain in expressivity.
 \end{abstract}
 
 \section{Introduction}
@@ -22,6 +22,48 @@ Deep neural networks have proven successful for solving with high accuracy machi
 However, this versatility comes at the cost of poor interpretability: a neural network simply represents a function from one high-dimensional space to another, but provides no justification nor explanation for a given execution. If metrics such as the accuracy over a testing set provide confidence in the fact that the model is able to correctly classify inputs similar to the training set, no guarantee is given that the model generalizes well. Real-world examples show that networks can overfit the input data, or even take shortcuts instead of learning the intended solution \cite{shortcuts}. For the user to have confidence in its predictions, a neural network should therefore be able to highlight the patterns in the input data that it actually learned.
 
 \subsection{Layer-wise Relevance Propagation}
+Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a technique to explain an execution of a neural network. LRP is a procedure propagating the output of the function backward in the network, using diverse rules to compute the \emph{relevance} of a neuron depending on the relevances of the neurons of the upstream layer. LRP introduces the notion of \emph{relevance score} for a neuron, intuitively quantifying the contribution of this neuron to the classification of final classification. A high relevance score indicates that the neuron led to the activation of the considered output; a negative relevance score represent neurons that increased the activation of another output neuron instead of the one considered.
+
+\subsubsection{Setup and notations}
+In the following, we consider a deep neural network used for a classification task. We assume that it uses the rectifier activation function\footnote{That is $\ReLU(x)=\max(0, x)$, where ReLU stands for \emph{Rectified Linear Unit}.}, which is the case in most applications. To ease the notation, we will not consider biases but instead assume that the first neuron of each layer represents the bias. 
+
+Let $L$ be the number of layers of the network. We denote by $\left(a^{(l)}_k\right)_k$ the activations of the network. Notably, $\left(a^{(1)}_k\right)_k$ is the input data, and $\left(a^{(L)}_k\right)_k$ is the ouput prediction. We denote by $\left(w^{(l)}_{j, k}\right)_{j, k}$ the weights connecting the $l$-th layer to the $(l+1)$-th layer. To simulate the weights, we set:
+\begin{equation*}
+    \forall l\in\iset{1}{L}, \quad a^{(l)}_0 = 1
+\end{equation*}
+and we define $w^{(l)}_{0, k}$ to be the bias of the $k$-th neuron of the $(l+1)$-th layer. The forward propagation rule of a deep rectifier network is therefore:
+\begin{equation}
+    \forall l\in\iset{1}{L-1}, \forall k, \quad a^{(l+1)}_k = \ReLU\left(\sum_{j=0}a^{(l)}_j w_{j, k}\right) = \max\left(0, \sum_{j=0}a^{(l)}_j w_{j, k}\right)
+\end{equation}
+
+We denote by $R^{(l)}_j$ the relevance of the $j$-th neuron of the $l$-th layer. We assume that the output layer represents a one-hot encoding, that is that the belonging of the input to the $i$-th class is represented by an output vector is of the form $(0, \dots, a^{(L)}_i, \dots, 0)$, that where the only non-null coefficient is in the $i$-th position. Finally, we denote by $y$ the label of a classified input. To the label $y=i$ is associated the output vector $(0, \dots, a^{(L)}_i, \dots, 0)$.
+
+\subsubsection{Propagation rules}
+Relevance scores are initialized for the output layer, and are set to the output activation for the correct class, that is:
+\begin{equation}
+    R^{(L)}_i = \begin{cases*}
+        a^{(L)}_i & if $i = y$\\
+        0 & otherwise
+    \end{cases*}
+\end{equation}
+
+The simplest LRP rule is called LRP-0. It propagates the relevance to a neuron of the lower layer proportionnaly to its contribution to each of the neuron of the next layer:
+\begin{equation}
+    R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} R^{(l+1)}_k
+\end{equation}
+The denominator $\sum_{j'}a^{(l)}_{j'}w_{j', k}$ guarantees a conservation property, that is that for any layer $l$:
+\begin{equation*}
+    \sum_j R^{(l)}_j = \sum_k R^{(l+1)}_k
+\end{equation*}
+This allows to keep the information regarding the total activation of the final layer.
+
+The application of this simple rule can lead into noisy results that do not scale well. An overview of variations of LRP-0 is provided by \cite{montavon-lrp}; not all rules are suitable for all layers. Complex deep neural networks architectures benefit from enhanced rules such as LRP-$\epsilon$ or LRP-$\gamma$, which provide more stable explanations.
+
+Notably, the input layer must be handled using a different rule, since it does not receive its input from ReLU activations, but directly from the input data. The $z^\mathcal{B}$ rule is used in \cite{montavon-lrp} to propagate from layer 2 to 1 (input layer):
+\begin{equation}
+    R^{(1)}_j = \sum_{k} \frac{x_kw_{j, k} - l_jw^+_{j, k} - h_jw_{j, k}^-}{\sum_{j'}x_kw_{j', k} - l_jw^+_{j', k} - h_jw_{j', k}^-} R^{(2)}_k
+\end{equation}
+where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_i$ and $h_i$ respectively define the theoretical minimum and maximum values of the inputs $x_i$; for instance we might have $l_i=0$ and $h_i=255$ for pixels over 8 bits.
 
 \subsection{Semiring-based provenance annotations}
 
