@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np
 
-def compare_relevance(reference, R0, R1, shape=None, label0=None, label1=None):
+def compare_relevance(reference, R0, R1, shape=None, label0=None, label1=None, individual_vmax=False):
     difference = R0-R1
     normalized_difference = R0/(R0.mean()) - R1/(R1.mean())
     
@@ -42,21 +42,23 @@ def compare_relevance(reference, R0, R1, shape=None, label0=None, label1=None):
 
     b = 10*(np.abs(R0_rs)**3.0).mean()**(1.0/3)
     axs[0][1].imshow(R0_rs, cmap=my_cmap, vmin=-b, vmax=b,interpolation='nearest')
-    title = "Relevance 0"
+    title = "Relevance 0 ($R_0$)"
     if label0 is not None:
         title += "\n" + label0
     axs[0][1].set_title(title)
 
-    #b = 10*(np.abs(R1_rs)**3.0).mean()**(1.0/3)
+    if individual_vmax:
+        b = 10*(np.abs(R1_rs)**3.0).mean()**(1.0/3)
     axs[0][2].imshow(R1_rs, cmap=my_cmap, vmin=-b, vmax=b,interpolation='nearest')
-    title = "Relevance 1"
+    title = "Relevance 1 ($R_1$)"
     if label1 is not None:
         title += "\n" + label1
     axs[0][2].set_title(title)
 
-    #b = 10*(np.abs(difference)**3.0).mean()**(1.0/3)
+    if individual_vmax:
+        b = 10*(np.abs(difference)**3.0).mean()**(1.0/3)
     axs[1][0].imshow(difference,cmap=my_cmap,vmin=-b,vmax=b,interpolation='nearest')
-    axs[1][0].set_title("Relevance difference")
+    axs[1][0].set_title("Relevance difference ($R_0-R_1$)")
 
     b = 10*(np.abs(normalized_difference)**3.0).mean()**(1.0/3)
     axs[1][1].imshow(normalized_difference,cmap=my_cmap,vmin=-b,vmax=b,interpolation='nearest')
