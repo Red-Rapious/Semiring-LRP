@@ -73,10 +73,10 @@ A framework to approach data provenance is \emph{provenance semirings}, introduc
 In the following, we provide a mathematical definition of a semiring as well as semiring examples suited for the application to deep neural networks.
 
 \begin{definition}[Semiring]
-    A \emph{semiring} is an algebraic structure generalizing the notion of rings. A semiring $(\mathbb{K}, \oplus, \otimes, \vmathbb{0}, \vmathbb{1})$ is composed of a set $\mathbb{K}$, binary operators $\oplus$ and $\otimes$ such that $\otimes$ distributes over $\oplus$, verifying the following properties:
+    A \emph{semiring} is an algebraic structure generalizing the notion of rings. A semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$ is composed of a set $\mathbb{K}$, binary operators $\oplus$ and $\otimes$ such that $\otimes$ distributes over $\oplus$, verifying the following properties:
     \begin{itemize}
-        \item $(\mathbb{K}, \oplus, \vmathbb{0})$ is a commutative monoid
-        \item $(\mathbb{K}, \otimes, \vmathbb{1})$ is a monoid such that $\vmathbb{0}$ is absorbing
+        \item $(\mathbb{K}, \oplus, \mathbf{0})$ is a commutative monoid
+        \item $(\mathbb{K}, \otimes, \mathbf{1})$ is a monoid such that $\mathbf{0}$ is absorbing
     \end{itemize}
 \end{definition}
 
