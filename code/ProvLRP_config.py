@@ -10,3 +10,7 @@ boolean_weight_threshold = 0
 counting_relevance_threshold = 0.5
 counting_activation_threshold = 0
 counting_weight_threshold = 0
+
+viterbi_relevance_threshold = 0.5
+viterbi_activation_threshold = 0
+viterbi_weight_threshold = 0

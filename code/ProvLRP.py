@@ -57,13 +57,13 @@ class Semiring():
         return s
     
     def pos(self):
-        f = max(0, self.value)
+        f = np.max(0., self.value)
         s = Semiring()
         s.value = f
         return s
 
     def neg(self):
-        f = min(0, self.value)
+        f = np.min(0., self.value)
         s = Semiring()
         s.value = f
         return s
@@ -255,3 +255,90 @@ class CountingSemiring(Semiring):
 
     def from_relevance(m):
         return np.array([[CountingSemiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
+    
+
+class ViterbiSemiring(Semiring):
+    def handle_initialisation(self, not_none, n1, n2):
+        if not_none is not None:
+            assert isinstance(not_none, numbers.Number), f"must be a number, is of type {type(not_none)}"
+            self.value = not_none
+            if n1 is not None or n2 is not None:
+                raise MultipleInitialisation
+                    
+    def handle_relevance(self, relevance, n1, n2):
+        self.handle_initialisation(relevance, n1, n2)
+
+    def handle_activation(self, activation, n1, n2):
+        self.handle_initialisation(activation, n1, n2)
+    
+    def handle_weight(self, weight, n1, n2):
+        self.handle_initialisation(weight, n1, n2)
+
+    def __init__(self, relevance=None, activation=None, weight=None):
+        self.handle_relevance(relevance, activation, weight)
+        self.handle_activation(activation, relevance, weight)
+        self.handle_weight(weight, activation, relevance)
+
+    def __add__(self, b):
+        f = max(self.value, b.value)
+        s = ViterbiSemiring()
+        s.value = f
+        return s
+
+    def __mul__(self, b):
+        f = self.value * b.value
+        s = ViterbiSemiring()
+        s.value = f
+        return s
+    
+    def to_float(self):
+        return self.value
+    
+    from_activation = np.vectorize(lambda x : ViterbiSemiring(activation=x))
+    from_weight = np.vectorize(lambda x : ViterbiSemiring(weight=x))
+
+    def from_relevance(m):
+        return np.array([[ViterbiSemiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
+    
+class FuzzySemiring(Semiring):
+    def handle_initialisation(self, not_none, n1, n2):
+        if not_none is not None:
+            assert isinstance(not_none, numbers.Number), f"must be a number, is of type {type(not_none)}"
+            self.value = not_none
+            if n1 is not None or n2 is not None:
+                raise MultipleInitialisation
+                    
+    def handle_relevance(self, relevance, n1, n2):
+        self.handle_initialisation(relevance, n1, n2)
+
+    def handle_activation(self, activation, n1, n2):
+        self.handle_initialisation(activation, n1, n2)
+    
+    def handle_weight(self, weight, n1, n2):
+        self.handle_initialisation(weight, n1, n2)
+
+    def __init__(self, relevance=None, activation=None, weight=None):
+        self.handle_relevance(relevance, activation, weight)
+        self.handle_activation(activation, relevance, weight)
+        self.handle_weight(weight, activation, relevance)
+
+    def __add__(self, b):
+        f = np.max(self.value, b.value)
+        s = FuzzySemiring()
+        s.value = f
+        return s
+
+    def __mul__(self, b):
+        f = np.min(self.value, b.value)
+        s = FuzzySemiring()
+        s.value = f
+        return s
+    
+    def to_float(self):
+        return self.value
+    
+    from_activation = np.vectorize(lambda x : FuzzySemiring(activation=x))
+    from_weight = np.vectorize(lambda x : FuzzySemiring(weight=x))
+
+    def from_relevance(m):
+        return np.array([[FuzzySemiring(activation=m[x][y]) for y in range(m.shape[1])] for x in range(m.shape[0])])
