@@ -57,13 +57,13 @@ class Semiring():
         return s
     
     def pos(self):
-        f = np.max(0., self.value)
+        f = max(0, self.value)
         s = Semiring()
         s.value = f
         return s
 
     def neg(self):
-        f = np.min(0., self.value)
+        f = min(0, self.value)
         s = Semiring()
         s.value = f
         return s
