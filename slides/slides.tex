@@ -33,6 +33,7 @@
     style=numeric,
 ]{biblatex}
 \usepackage{graphicx}
+\usepackage[justification=centering]{caption}
 
 \graphicspath{{./images/}}
 
@@ -104,6 +105,8 @@
     \begin{equation}
         R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} R^{(l+1)}_k
     \end{equation}
+    \newline{}
+    Other rules exist (LRP-$\epsilon$, LRP-$\gamma$, $z^\mathcal{B}$)
 \end{frame}
 
 \begin{frame}{Layerwise Relevance Propagation}{Results visualization}
@@ -150,6 +153,8 @@
 \end{frame}
 
 \begin{frame}{Semiring generalization of the LRP rule}
+    Consider a semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$
+
     Conversion functions for activations, weights:
     \begin{equation*}
         \begin{aligned}
@@ -230,24 +235,66 @@
 
 \section{Applications}
 \subsection{Image mask computation}
-\begin{frame}{Image mask computation}
-    
+\begin{frame}{Class-wise mask - Boolean semiring}
+    \begin{figure}
+        \includegraphics[width=.65\textwidth]{boolean-mask.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{All classes mask - Boolean semiring}
+    \begin{figure}
+        \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Class-wise mask - Counting semiring}
+    \begin{figure}
+        \includegraphics[width=.75\textwidth]{counting-mask.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{All classes mask - Counting semiring}
+    \begin{figure}
+        \includegraphics[width=.6\textwidth]{counting-mask-all.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Comparison to dataset mean}
+    \begin{figure}
+        \includegraphics[width=.7\textwidth]{dataset-relevance-cmp.png}
+    \end{figure}
 \end{frame}
 
 \subsection{Network pruning using LRP ranking}
 \begin{frame}{Network pruning using LRP ranking}
-    
+    \begin{figure}[ht]
+        \begin{minipage}[c]{0.55\linewidth}
+            \centering
+            \includegraphics[width=.6\textwidth]{relevance-mean.png}
+            \caption{Relevance mean over the training dataset}
+        \end{minipage}
+        \hspace{0.5cm}
+        \begin{minipage}[c]{0.35\linewidth}
+            \centering
+            \includegraphics[width=.7\textwidth]{pruning.png}
+        \end{minipage}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \begin{figure}
+        \includegraphics[width=.9\textwidth]{pruning-graph-large.png}
+    \end{figure}
 \end{frame}
 
 \subsection{Comparison to image perturbation}
 \begin{frame}{Comparison to image perturbation}
     \begin{figure}
-        \includegraphics[width=.7\textwidth]{attacks.png}
+        \includegraphics[width=.75\textwidth]{attacks.png}
         \caption{Accuracies per attack zone}
     \end{figure}
 \end{frame}
 
-\section{Conclusion}
 \begin{frame}
     \nocite{*}
     \printbibliography
