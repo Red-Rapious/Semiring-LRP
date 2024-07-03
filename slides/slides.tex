@@ -26,6 +26,7 @@
 \usepackage{mathtools}
 \usepackage{wrapfig}
 \usepackage{enumitem}
+\usepackage{tikz}
 
 \usepackage[
     backend=biber,
@@ -141,6 +142,91 @@
 \end{frame}
 
 \section{Extending LRP}
+\begin{frame}{Simplifying LRP rule}
+    Remove the denominator:
+    \begin{equation*}
+        R^{(l)}_j = \sum_k\frac{a^{(l)}_jw_{j, k}^{(l)}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}^{(l)}} R^{(l+1)}_k \quad \longrightarrow \quad R^{(l)}_j = \sum_{k} a^{(l)}_jw_{j, k}^{(l)} \cdot R^{(l+1)}_k
+    \end{equation*}
+\end{frame}
+
+\begin{frame}{Semiring generalization of the LRP rule}
+    Conversion functions for activations, weights:
+    \begin{equation*}
+        \begin{aligned}
+            \Theta_a : \mathbb{R} &\longrightarrow \mathbb{K}\\
+            \Theta_w : \mathbb{R} &\longrightarrow \mathbb{K}
+        \end{aligned}
+    \end{equation*}
+    Initialization:
+    \begin{equation}
+        R^{(L)}_i = \begin{cases*}
+            \Theta_a\left(a^{(L)}_i\right) & if $i = y$\\
+            \mathbf{0} & otherwise
+        \end{cases*}
+    \end{equation}
+    Propagation rule:
+    \begin{equation}
+        R^{(l)}_j = \bigoplus_k \Theta_a\left(a^{(l)}_j\right) \otimes \Theta_w\left(w_{j, k}^{(l)}\right) \otimes R^{(l+1)}_k
+    \end{equation}
+\end{frame}
+
+\begin{frame}{Boolean Semiring}{\large $(\{\bot, \top\}, \lor, \land, \bot, \top)$}
+    \begin{equation*}
+        \Theta_a = a \longmapsto \begin{cases*}
+            \top & if $a\geq\theta_a$\\
+            \bot & otherwise
+        \end{cases*}
+        \qquad\qquad
+        \Theta_w = w \longmapsto \begin{cases*}
+            \top & if $w\geq\theta_w$\\
+            \bot & otherwise
+        \end{cases*}
+    \end{equation*}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.5\textwidth]{boolean.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Influence of the thresholds}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.6\textwidth]{boolean-threshold.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Counting Semiring}{\large $(\mathbb{N}, +, \times, 0, 1)$}
+    \begin{equation*}
+        \Theta_a = a \longmapsto \begin{cases*}
+            1 & if $a\geq\theta_a$\\
+            0 & otherwise
+        \end{cases*}
+        \qquad\qquad
+        \Theta_w = w \longmapsto \begin{cases*}
+            1 & if $w\geq\theta_w$\\
+            0 & otherwise
+        \end{cases*}
+    \end{equation*}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.5\textwidth]{counting.png}
+    \end{figure}
+\end{frame}
+
+% \begin{frame}{Viterbi Semiring}{\large $([0, 1], \max, \times, 0, 1)$}
+%     \begin{equation*}
+%         \Theta_a = a \longmapsto a
+%         \qquad\qquad
+%         \Theta_w = w \longmapsto w
+%     \end{equation*}
+
+%     \begin{figure}[H]
+%         \centering
+%         \includegraphics[width=.5\textwidth]{viterbi.png}
+%     \end{figure}
+% \end{frame}
 
 \section{Applications}
 \subsection{Image mask computation}
