@@ -109,17 +109,38 @@
     Other rules exist (LRP-$\epsilon$, LRP-$\gamma$, $z^\mathcal{B}$)
 \end{frame}
 
-\begin{frame}{Layerwise Relevance Propagation}{Results visualization}
-    \begin{tabular}[pos]{cc}
-        \includegraphics[width=.4\textwidth]{mnist-lrp.png}
-        &
-        \includegraphics[width=.4\textwidth]{castle-lrp.png}
-    \end{tabular}
+\begin{frame}{LRP Results visualization}{Multilayer Perceptron on MNIST dataset}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=.6\textwidth]{mnist-lrp.png}
+        \caption{Reference image and relevance for the class 0}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{LRP Results visualization}{VVG-16 on ImageNet dataset}
+    \begin{figure}[ht]
+        \begin{minipage}[c]{0.45\linewidth}
+            \centering
+            \includegraphics[width=.8\textwidth]{castle.jpg}
+            \caption{Reference image}
+        \end{minipage}
+        \hspace{0.25cm}
+        \begin{minipage}[c]{0.45\linewidth}
+            \centering
+            \includegraphics[width=.8\textwidth]{castle-lrp.png}
+            \caption{Relevance for the class \texttt{castle}}
+        \end{minipage}
+    \end{figure}
 \end{frame}
 
 \begin{frame}{Pertinence of LRP results}
-    \begin{figure}[H]
-        \includegraphics[width=.5\textwidth]{dmnist-lrp.png}
+    \begin{figure}
+        \centering
+        \begin{tikzpicture}
+            \draw[->, thick] (-6.5, 1) -- ++ (3, 0) node [above, pos=.5] {\small Image label (0)};
+            \draw[->, thick] (-6.5, -1.5) -- ++ (3, 0) node [below, pos=.5] {\small Useless digit};
+            \node at (0, 0) {\includegraphics[width=.5\textwidth]{dmnist-lrp.png}};
+        \end{tikzpicture}
     \end{figure}
 \end{frame}
 
@@ -220,18 +241,16 @@
     \end{figure}
 \end{frame}
 
-% \begin{frame}{Viterbi Semiring}{\large $([0, 1], \max, \times, 0, 1)$}
-%     \begin{equation*}
-%         \Theta_a = a \longmapsto a
-%         \qquad\qquad
-%         \Theta_w = w \longmapsto w
-%     \end{equation*}
+\begin{frame}{Viterbi Semiring}{\large $([0, 1], \max, \times, 0, 1)$}
+    \begin{equation*}
+        R^{(l)}_j = \max_k \underbrace{\left(\frac{\left|a^{(l)}_jw_{j, k}^{(l)}\right|}{\max_{j'} \left|a^{(l)}_{j'}w_{j', k}^{(l)}\right|}\right)}_{\in[0, 1]} \cdot R^{(l+1)}_k
+    \end{equation*}
 
-%     \begin{figure}[H]
-%         \centering
-%         \includegraphics[width=.5\textwidth]{viterbi.png}
-%     \end{figure}
-% \end{frame}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.5\textwidth]{viterbi.png}
+    \end{figure}
+\end{frame}
 
 \section{Applications}
 \subsection{Image mask computation}
