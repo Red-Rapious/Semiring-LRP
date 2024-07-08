@@ -96,7 +96,7 @@
 \end{frame}
 
 \subsection{Layerwise Relevance Propagation}
-\begin{frame}{Layerwise Relevance Propagation}
+\begin{frame}{Layerwise Relevance Propagation \cite{montavon-lrp}}
     \begin{figure}[H]
         \includegraphics[width=\textwidth]{LRP.png}
     \end{figure}
@@ -175,7 +175,7 @@
         \begin{minipage}[c]{0.45\linewidth}
             \centering
             \includegraphics[width=.8\textwidth]{castle-lrp.png}
-            \caption{Relevance for the class \texttt{castle}}
+            \caption{Relevance for the class "\texttt{castle}"}
         \end{minipage}
     \end{figure}
 \end{frame}
@@ -192,7 +192,7 @@
 \end{frame}
 
 \subsection{Semiring-based provenance annotations}
-\begin{frame}{Semiring-based provenance annotations}
+\begin{frame}{Semiring-based provenance annotations \cite{green-2007,ramusat-prov}}
     \begin{definition}[Semiring]
         A semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$ is such that:
         \begin{itemize}[label=--, noitemsep]
@@ -227,14 +227,14 @@
     Conversion functions for activations, weights:
     \begin{equation*}
         \begin{aligned}
-            \Theta_a : \mathbb{R} &\longrightarrow \mathbb{K}\\
+            \Theta_a : \mathbb{R} \!\!&\longrightarrow \mathbb{K}\\
             \Theta_w : \mathbb{R} &\longrightarrow \mathbb{K}
         \end{aligned}
     \end{equation*}
     Initialization:
     \begin{equation}
         R^{(L)}_i = \begin{cases*}
-            \Theta_a\left(a^{(L)}_i\right) & if $i = y$\\
+            \textcolor{red}{\Theta_a\left(a^{(L)}_i\right)} & if $i = y$\\
             \mathbf{0} & otherwise
         \end{cases*}
     \end{equation}
@@ -355,7 +355,7 @@
 \end{frame}
 
 \subsection{Comparison to image perturbation}
-\begin{frame}{Comparison to image perturbation}
+\begin{frame}{Comparison to image perturbation \cite{fong2017interpretable}}
     \begin{figure}
         \includegraphics[width=.75\textwidth]{attacks.png}
         \caption{Accuracies per attack zone}
