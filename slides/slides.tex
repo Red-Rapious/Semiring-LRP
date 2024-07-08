@@ -27,6 +27,8 @@
 \usepackage{wrapfig}
 \usepackage{enumitem}
 \usepackage{tikz}
+\usepackage{xcolor}
+\usetikzlibrary{positioning}
 
 \usepackage[
     backend=biber,
@@ -82,7 +84,15 @@
 \section{Introduction}
 \subsection{Problem statement}
 \begin{frame}{Problem statement}
+    \begin{figure}
+        \centering
+        \begin{tikzpicture}
+            \node at (0, 0) {\includegraphics[width=.4\textwidth]{castle.jpg}};
+            \node at (6.5, 0) {\includegraphics[width=.5\textwidth]{cnn.png}};
 
+            \node at (11, 0.1) {"\texttt{castle}"};
+        \end{tikzpicture}
+    \end{figure}
 \end{frame}
 
 \subsection{Layerwise Relevance Propagation}
@@ -92,20 +102,57 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{Layerwise Relevance Propagation}{Propagation rules}
+\begin{frame}{Layerwise Relevance Propagation}{Initialization}
     Initialization:
     \begin{equation}
         R^{(L)}_i = \begin{cases*}
-            a^{(L)}_i & if $i = y$\\
+            \textcolor{red}{a^{(L)}_i} & if $i = y$ (the class we want)\\
             0 & otherwise
         \end{cases*}
     \end{equation}
 
+    \begin{figure}
+        \centering
+        \begin{tikzpicture}
+            \node at (0, 0) {$
+                \begin{bmatrix}
+                    0\\
+                    0\\
+                    \vdots\\
+                    \textcolor{red}{\bf 1}\\
+                    \vdots\\
+                    0
+                \end{bmatrix}
+            $};
+            \draw [->, thick] (0.5, 1.4) -- ++ (.5, 0) node[right] {"\texttt{goldfish}"};
+            \draw [->, thick] (0.5, .9) -- ++ (.5, 0) node[right] {"\texttt{street sign}"};
+            \draw [->, thick] (0.5, -.2) -- ++ (.5, 0) node[right] {"\texttt{\textcolor{red}{castle}}"};
+            \draw [->, thick] (0.5, -1.3) -- ++ (.5, 0) node[right] {"\texttt{printer}"};
+        \end{tikzpicture}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Layerwise Relevance Propagation}{Propagation}
     LRP-0 rule:
     \begin{equation}
         R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} R^{(l+1)}_k
     \end{equation}
-    \newline{}
+    \begin{figure}
+        \centering
+        \begin{tikzpicture}[scale=.6]
+            \draw[thick] (0,0) -- (4, 2) node[above=.12, pos=.6] {$w_{j,1}$};
+            \draw[thick] (0,0) -- (4, .7) node[below, pos=.6] {$w_{j,2}$};
+            \draw[thick] (0,0) -- (4, -2) node[below=.12, pos=.6] {$w_{j,m}$};
+
+            \node at (0, 1) {$a_j^{(l)}$};
+            \draw[thick, fill=red!20,circle,minimum size=15] (0, 0) circle (10pt) node[left] {$R_j^{(l)}$};
+
+            \draw[thick, fill=red!60,circle,minimum size=15] (4, 2) circle (10pt) node[right=.2] {$R_1^{(l+1)}$};
+            \draw[thick, fill=red!10,circle,minimum size=15] (4, .7) circle (10pt) node[right=.2] {$R_2^{(l+1)}$};
+            \node at (4, -.4) {$\vdots$};
+            \draw[thick, fill=red!35,circle,minimum size=15] (4, -2) circle (10pt) node[right=.2] {$R_m^{(l+1)}$};
+        \end{tikzpicture}
+    \end{figure}
     Other rules exist (LRP-$\epsilon$, LRP-$\gamma$, $z^\mathcal{B}$)
 \end{frame}
 
@@ -147,9 +194,10 @@
 \subsection{Semiring-based provenance annotations}
 \begin{frame}{Semiring-based provenance annotations}
     \begin{definition}[Semiring]
-        A semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$ is composed of a set $\mathbb{K}$, binary operators $\oplus$ and $\otimes$ such that $\otimes$ distributes over $\oplus$, verifying the following properties:
+        A semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$ is such that:
         \begin{itemize}[label=--, noitemsep]
-            \item $(\mathbb{K}, \oplus, \mathbf{0})$ is a commutative monoid
+            \item $\otimes$ distributes over $\oplus$,
+            \item $(\mathbb{K}, \oplus, \mathbf{0})$ is a commutative monoid,
             \item $(\mathbb{K}, \otimes, \mathbf{1})$ is a monoid such that $\mathbf{0}$ is absorbing
         \end{itemize}
     \end{definition}
@@ -254,25 +302,25 @@
 
 \section{Applications}
 \subsection{Image mask computation}
-\begin{frame}{Class-wise mask - Boolean semiring}
+\begin{frame}{Class-wise mask -- Boolean semiring}
     \begin{figure}
         \includegraphics[width=.65\textwidth]{boolean-mask.png}
     \end{figure}
 \end{frame}
 
-\begin{frame}{All classes mask - Boolean semiring}
+\begin{frame}{All classes mask -- Boolean semiring}
     \begin{figure}
         \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
     \end{figure}
 \end{frame}
 
-\begin{frame}{Class-wise mask - Counting semiring}
+\begin{frame}{Class-wise mask -- Counting semiring}
     \begin{figure}
         \includegraphics[width=.75\textwidth]{counting-mask.png}
     \end{figure}
 \end{frame}
 
-\begin{frame}{All classes mask - Counting semiring}
+\begin{frame}{All classes mask -- Counting semiring}
     \begin{figure}
         \includegraphics[width=.6\textwidth]{counting-mask-all.png}
     \end{figure}
@@ -290,7 +338,7 @@
         \begin{minipage}[c]{0.55\linewidth}
             \centering
             \includegraphics[width=.6\textwidth]{relevance-mean.png}
-            \caption{Relevance mean over the training dataset}
+            \caption{Relevance mean over the training dataset (Input layer)}
         \end{minipage}
         \hspace{0.5cm}
         \begin{minipage}[c]{0.35\linewidth}
