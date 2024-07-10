@@ -22,7 +22,7 @@ Deep neural networks have proven successful for solving with high accuracy machi
 However, this versatility comes at the cost of poor interpretability: a neural network simply represents a function from one high-dimensional space to another, but provides no justification nor explanation for a given execution. If metrics such as the accuracy over a testing set provide confidence in the fact that the model is able to correctly classify inputs similar to the training set, no guarantee is given that the model generalizes well. Real-world examples show that networks can overfit the input data, or even take shortcuts instead of learning the intended solution \cite{shortcuts}. For the user to have confidence in its predictions, a neural network should therefore be able to highlight the patterns in the input data that it actually learned.
 
 \subsection{Layer-wise Relevance Propagation}
-Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a technique to explain an execution of a neural network. LRP is a procedure propagating the output of the function backward in the network, using diverse rules to compute the \emph{relevance} of a neuron depending on the relevances of the neurons of the upstream layer. LRP introduces the notion of \emph{relevance score} for a neuron, intuitively quantifying the contribution of this neuron to the classification of final classification. A high relevance score indicates that the neuron led to the activation of the considered output; a negative relevance score represent neurons that increased the activation of another output neuron instead of the one considered.
+Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a technique to explain an execution of a neural network. LRP is a procedure propagating the output of the function backward in the network, using diverse rules to compute the \emph{relevance} of a neuron depending on the relevances of the neurons of the upstream layer. LRP introduces the notion of \emph{relevance score} for a neuron, intuitively quantifying the contribution of this neuron to the classification of final classification. A high relevance score indicates that the neuron led to the activation of the considered output; a negative relevance score represents neurons that increased the activation of another output neuron instead of the one considered.
 
 \subsubsection{Setup and notations}
 In the following, we consider a deep neural network used for a classification task. We assume that it uses the rectifier activation function\footnote{That is $\ReLU(x)=\max(0, x)$, where ReLU stands for \emph{Rectified Linear Unit}.}, which is the case in most applications. To ease the notation, we will not consider biases but instead assume that the first neuron of each layer represents the bias. 
@@ -65,6 +65,8 @@ Notably, the input layer must be handled using a different rule, since it does n
 \end{equation}
 where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_i$ and $h_i$ respectively define the theoretical minimum and maximum values of the inputs $x_i$; for instance we might have $l_i=0$ and $h_i=255$ for pixels over 8 bits.
 
+\subsubsection{LRP results and pertinence}
+
 \subsection{Semiring-based provenance annotations}
 In parallel, the notion of data provenance in databases theory developed formal solutions to a similar problem to ours. Data provenance aims at \emph{explaning} a query by highlighting the tuples in the original database that led to the presence of a certain tuple in the query result. If contexts are different, deep neural networks explanation and data provenance share the same general setup: identifying a subset of the input that directly implied a certain output.
 
@@ -91,6 +93,22 @@ In the following, we provide a mathematical definition of a semiring as well as 
 \begin{example}[Counting semiring]
     $(\mathbb{N}, +, \times, 0, 1)$ is a semiring. For a non-cyclic graph database, its use allows to compute the total number of paths between two vertices, using edge weights as the number of different paths between two adjacent vertices.
 \end{example}
+
+\begin{example}[Viertbi semiring]
+    $([0, 1], \max, \times, 0, 1)$ is a semiring. For a non-cyclic graph database where the annotations are interpreted as a \say{confidence} measure, its use allows to compute the confidence score of the result of a query.
+\end{example}
+
+\section{Extending LRP using Semiring Annotations}
+\subsection{Semiring generalization of the LRP rule}
+\subsection{Results for diverse semirings}
+\subsubsection{Boolean Semiring}
+\subsubsection{Counting Semiring}
+\subsubsection{Viterbi Semiring}
+
+\section{Applications}
+\subsection{Image mask computation}
+\subsection{Network pruning using LRP ranking}
+\subsection{Comparison to image perturbation}
 
 \newpage
 \nocite{*}
