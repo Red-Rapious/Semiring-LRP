@@ -32,7 +32,7 @@ def loaddata():
 # Visualizing data
 # --------------------------------------
 
-def heatmap(R,sx,sy):
+def heatmap(R,sx,sy,title=None):
 
     b = 10*((numpy.abs(R)**3.0).mean()**(1.0/3))
 
@@ -44,6 +44,8 @@ def heatmap(R,sx,sy):
     plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
     plt.axis('off')
     plt.imshow(R,cmap=my_cmap,vmin=-b,vmax=b,interpolation='nearest')
+    if title is not None:
+        plt.title(title)
     plt.show()
 
 def digit(X,sx,sy):
