@@ -8,7 +8,7 @@
 }
 
 \addbibresource{report.bib}
-\graphicspath{{../cs-classes}}
+\graphicspath{{../cs-classes}{../images}}
 
 \begin{document}
 \begin{abstract}
@@ -36,7 +36,7 @@ and we define $w^{(l)}_{0, k}$ to be the bias of the $k$-th neuron of the $(l+1)
     \forall l\in\iset{1}{L-1}, \forall k, \quad a^{(l+1)}_k = \ReLU\left(\sum_{j=0}a^{(l)}_j w^{(l)}_{j, k}\right) = \max\left(0, \sum_{j=0}a^{(l)}_j w^{(l)}_{j, k}\right)
 \end{equation}
 
-We denote by $R^{(l)}_j$ the relevance of the $j$-th neuron of the $l$-th layer. We assume that the output layer represents a one-hot encoding, that is that the belonging of the input to the $i$-th class is represented by an output vector is of the form $(0, \dots, a^{(L)}_i, \dots, 0)$, that where the only non-null coefficient is in the $i$-th position. Finally, we denote by $y$ the label of a classified input. To the label $y=i$ is associated the output vector $(0, \dots, a^{(L)}_i, \dots, 0)$.
+We denote by $R^{(l)}_j$ the relevance of the $j$-th neuron of the $l$-th layer. We assume that the output layer represents a one-hot encoding, that is that the belonging of the input to the $i$-th class is represented by an output vector is of the form $(0, \dots, a^{(L)}_i, \dots, 0)$, where the only non-null coefficient is in the $i$-th position. Finally, we denote by $y$ the label of a classified input. To the label $y=i$ is associated the output vector $(0, \dots, a^{(L)}_i, \dots, 0)$.
 
 \subsubsection{Propagation rules}
 Relevance scores are initialized for the output layer, and are set to the output activation for the correct class, that is:
@@ -66,6 +66,35 @@ Notably, the input layer must be handled using a different rule, since it does n
 where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_i$ and $h_i$ respectively define the theoretical minimum and maximum values of the inputs $x_i$. For instance, we might have $l_i=0$ and $h_i=255$ for pixels over 8 bits.
 
 \subsubsection{LRP results and pertinence}
+Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods that we will introduce later on, were experimentaly tested on models trained over two datasets: fully-connected networks trained on the MNIST handwritten digits dataset \cite{mnist-dataset}, and deep convolutional networks pre-trained on the ImageNet visual database such as VGG-16 \cite{vgg}.
+
+\autoref{fig:mnist-lrp} shows relevance for a simple model: a fully-connected deep rectifier network with layers of sizes $28\times28$, $300$, $100$ and $10$, trained on the MNIST dataset. Pixels highlighted in red have a positive relevance while blue pixels have a negative relevance. As expected, the relevant pixels to classify this image as a \texttt{0} are the white pixels in the input image.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{mnist-lrp.png}
+    \caption{Input image and pixel-wise explanation of the output neuron \texttt{0}}
+    \label{fig:mnist-lrp}
+\end{figure}
+
+\autoref{fig:castle-lrp} provides a visualization for a more complex example, an execution of the VGG-16 network over a $224\times224$ image. 
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[c]{.49\textwidth}
+        \centering
+        \includegraphics[width=.65\textwidth]{castle.jpg}
+    \end{minipage}
+    \hspace*{-2.5cm}
+    \begin{minipage}[c]{.49\textwidth}
+        \centering
+        \includegraphics[width=.65\textwidth]{castle-lrp.png}
+    \end{minipage}
+    \caption{Input image and relevance for the class "\texttt{castle}" of the VGG-16 network}
+    \label{fig:castle-lrp}
+\end{figure}
+Note that the castle part of the image is highlighted in red as intended. Furthermore, both the street sign and the street light have strong negative relevance; those two objects correspond to other classes of the ImageNet dataset (\texttt{street sign (919)} and \texttt{traffic light (920)}). Those two elements of the image would have positive relevance for LRP starting from the output neurons \texttt{919} and \texttt{920}.
+
+% TODO: double MNIST?
 
 \subsection{Semiring-based provenance annotations}
 In parallel, the notion of data provenance in databases theory developed formal solutions to a similar problem to ours. Data provenance aims at \emph{explaning} a query by highlighting the tuples in the original database that led to the presence of a certain tuple in the query result. If contexts are different, deep neural networks explanation and data provenance share the same general setup: identifying a subset of the input that directly implied a certain output.
@@ -106,7 +135,14 @@ In the following, we provide a mathematical definition of a semiring as well as 
 \subsubsection{Viterbi Semiring}
 
 \section{Handling of convolutional neural networks}
+\subsection{Computing relevance for convolutional layers}
+\subsubsection{Forward pass}
+\subsubsection{Gradient expression of LRP}
+\subsubsection{Implementing LRP without automatic differentiation}
 
+\subsection{Results for the VGG-16 network}
+
+\subsection{Thresholds choice}
 
 \section{Applications}
 \subsection{Image mask computation}
