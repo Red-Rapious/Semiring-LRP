@@ -122,7 +122,7 @@ In the following, we provide a mathematical definition of a semiring as well as 
 \end{example}
 
 \begin{example}[Boolean semiring]
-    $(\B, \lor, \land, \bot, \top)$ where $\B=\{\bot, \top\}$ is a semiring. Its use in databases provenance interprets as the existence of a path between two vertices, using edge weights as the number of different paths between two adjacent vertices. 
+    $(\B, \lor, \land, \bot, \top)$ where $\B:=\{\bot, \top\}$ is a semiring. Its use in databases provenance interprets as the existence of a path between two vertices, using edge weights as the number of different paths between two adjacent vertices. 
 \end{example}
 
 \begin{example}[Counting semiring]
@@ -146,7 +146,7 @@ where the $d_{j,k}^{(l)}$ are some coefficients proportional to the extent to wh
 
 \autoref{eq:general-lrp} is the special real-valued case of a more general rule. Let $(\K, \oplus, \otimes, \0, \1)$ be a semiring, and $(\Theta^{(l)})_l$ be conversion functions of the form $\R\to\K$. We call $\K$-relevance for output neuron $y$ the quantity $R\in\K$ inductively defined by:
 \begin{equation}
-    R^{(L)}_i = \begin{cases*}
+    R^{(L)}_i := \begin{cases*}
         \1 & if $i = y$\\
         \0 & otherwise
     \end{cases*}
@@ -154,7 +154,7 @@ where the $d_{j,k}^{(l)}$ are some coefficients proportional to the extent to wh
 \end{equation}
 and
 \begin{equation}
-    R^{(l)}_j = \bigoplus_{k}\Theta^{(l)}(d_{j,k}) \otimes R^{(l+1)}_k
+    R^{(l)}_j := \bigoplus_{k}\Theta^{(l)}(d_{j,k}) \otimes R^{(l+1)}_k
     \label{eq:semiring-lrp-rec}
 \end{equation}
 Note that choosing $(\R,+,\times,0,1)$ as a semiring and $\Theta^{(l)}=x\mapsto x$ retrieves classical LRP up to a multiplicative factor of $a_i^{(L)}$ on each layer (which does not appear on the semiring initialization).
@@ -166,26 +166,69 @@ Therefore, a second approach that fits the graph properties of neural networks i
 
 
 \subsection{Results over the MNIST dataset}
+We provide experimental results of the implementation of semiring-based LRP. In the following, we use the same fully-connected network as in \autoref{fig:mnist-lrp}, with layers of sizes $28\times28$, $300$, $100$ and $10$ and trained on the MNIST dataset.
 \subsubsection{Boolean Semiring}
+Boolean relevance can be computed using the boolean semiring $(\B=\{\bot, \top\}, \lor, \land, \bot, \top)$, and a conversion function $\Theta$ of the form:
+\begin{equation}
+    \begin{aligned}
+        \Theta: \R&\longrightarrow\B\\
+        x&\longmapsto \begin{cases*}
+            \top & if $x\geq\theta$\\
+            \bot & otherwise
+        \end{cases*}
+    \end{aligned}
+\end{equation}
+where $\theta$ is a hyperparameter called the threshold. A higher threshold reduces the number of $\top$ coefficients, ultimately reducing the number of input neurons having a relevance equal to $\top$. Choosing $\theta=10^{-9}$ filters out null and negative contributions to the output while maintaining a sufficient amount of activated inputs for visualization.
+
+The full propagation equation becomes:
+\begin{equation}
+    R^{(l)}_j := \bigvee_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \land R^{(l+1)}_k
+\end{equation}
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{boolean.png}
-    \caption{Input image and $\B$-relevance for the output neuron \texttt{0}}
+    \caption{Input image and $\B$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$}
 \end{figure}
+$\B$-relevance provides a higher level explanation, highlighting large zones of the input image which contribute the most to the final classification.
+Naturally, information about nuances in the contribution is lost. Intuitively, activated pixels (input neurons with relevance $\top$) are neurons such that there exists a \say{relevant} path from this neuron to the output neuron of the class \texttt{0}. A relevant path is a path in which all edges have a weight higher than the threshold $\theta$. While this condition might seem quite restrictive, note that computation graphs for neural networks are densely connected: there is $784\times300\times100=23\,520\,000$ different paths connecting one input pixel to the output neuron of the class \texttt{0}.
 
 \subsubsection{Counting Semiring}
+The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance by enumerating the number of relevant paths starting from each input pixel. Its conversion function $\Theta$ is mostly identical:
+\begin{equation}
+    \begin{aligned}
+        \Theta: \R&\longrightarrow\N\\
+        x&\longmapsto \begin{cases*}
+            1 & if $x\geq\theta$\\
+            0 & otherwise
+        \end{cases*}
+    \end{aligned}
+\end{equation}
+but operations $+$ and $\times$ bring more expressivity to the framework, bringing more nuance in the highlighted zones.
+
+The full propagation equation becomes:
+\begin{equation}
+    R^{(l)}_j := \sum_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \times R^{(l+1)}_k
+\end{equation}
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{counting.png}
-    \caption{Input image and $\N$-relevance for the output neuron \texttt{0}}
+    \caption{Input image and $\N$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$.\\ Highest relevance is 2098.}
 \end{figure}
 
 \subsubsection{Viterbi Semiring}
+The Viterbi semiring $([0, 1], \max, \times, 0, 1)$ replaces the $+$ of the classical real semiring by a $\max$. In a context where neurons can have the same weighted sum of relevance, taking the maximum of the relevance emphasizes the very most important neurons, giving a more contrasted visualization than classical LRP. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{viterbi.png}
     \caption{Input image and $[0, 1]$-relevance for the output neuron \texttt{0}}
 \end{figure}
+To ensure that values belong to the $[0, 1]$ set, the following rule is used:
+\begin{equation}
+    R^{(l)}_j = \max_k \underbrace{\left(\frac{\left|a_j\cdot w_{j, k}\right|}{\max_{j'} \left|a_{j'}\cdot w_{j', k}\right|}\right)}_{\in[0, 1]} \cdot R^{(l+1)}_k
+\end{equation}
+In practice, a small amount such as \texttt{1e-9} can be added to each denominator to prevent from dividing by zero in the case where each $|a_j\cdot w_{j,k}|$ is null.
 
 \section{Handling of Convolutional Neural Networks}
 If LRP rules are well-suited for simple, feedforward neural networks, most use cases of explanations occur with larger models, namely deep convolutional neural networks (CNNs). We explain how previously introduced rules can be adapted to CNNs, and provide visualization examples for the VGG-16 model.
@@ -267,8 +310,12 @@ where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and wh
 
 \subsection{Comparison to image perturbation}
 
-\newpage
+\section{Conclusion}
+
 \nocite{*}
 \printbibliography
+
+\newpage
+\section*{Appendices}
 
 \end{document}
