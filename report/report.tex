@@ -1,6 +1,6 @@
 \documentclass{../cs-classes/cs-classes}
 
-\title{Extending Layerwise Relevance Propagation using Semiring Annotations}
+\title{Extending Layer-wise Relevance Propagation using Semiring Annotations}
 \author{
     \textbf{Antoine Groudiev}\\L3, DI, ENS
     \and
@@ -10,9 +10,13 @@
 \addbibresource{report.bib}
 \graphicspath{{../cs-classes}{../images}}
 
+\newcommand*{\K}{\mathbb{K}}
+\newcommand*{\1}{\mathbf{1}}
+\newcommand*{\0}{\mathbf{0}}
+
 \begin{document}
 \begin{abstract}
-    Recently, neural networks allowed computers to solve numerous problems from diverse machine learning fields, such as natural language processsing and computer vision. Compared to traditional algorithms, machine learning models have proven both more successful and more difficult to interpret. Neural networks are considered as black boxes unable to easily explain themselves, that is justifying the reasons that led them to make a prediction. Layer-wise Relevance Propagation (LRP) is a technique that has been introduced to provide explanability by identifying the input features relevant to the output choice. In parallel, research in the databases field developed annotations techniques to compute provenance for queries. In this paper, we extend LRP propagation rules to semiring-based provenance annotations of the network, for LRP to gain in expressivity.
+    Recently, neural networks allowed computers to solve numerous problems from diverse machine learning fields, such as natural language processsing and computer vision. Compared to traditional algorithms, machine learning models have proven both more successful and more difficult to interpret. Neural networks are considered as black boxes unable to easily explain themselves, that is justifying the reasons that led them to make a prediction. Layer-wise Relevance Propagation (LRP) is a technique that has been introduced to provide explanability by identifying the input features relevant to the output choice. In parallel, research in the databases field developed annotations techniques to compute provenance for queries. In this paper, we extend LRP propagation rules to semiring-based provenance annotations of the network, and implement semiring-based propagation rules for computer vision models of different scales.
 \end{abstract}
 
 \section{Introduction}
@@ -56,6 +60,8 @@ The denominator $\sum_{j'}a^{(l)}_{j'}w^{(l)}_{j', k}$ guarantees a conservation
     \sum_j R^{(l)}_j = \sum_k R^{(l+1)}_k
 \end{equation*}
 This allows to keep the information regarding the total activation of the final layer.
+
+% TODO: explain why this rule, using the slides picture
 
 The application of this simple rule can lead into noisy results that do not scale well. An overview of variations of LRP-0 is provided by \cite{montavon-lrp}; not all rules are suitable for all layers. Complex deep neural networks architectures benefit from enhanced rules such as LRP-$\epsilon$ or LRP-$\gamma$, which provide more stable explanations.
 
@@ -104,10 +110,10 @@ A framework to approach data provenance is \emph{provenance semirings}, introduc
 In the following, we provide a mathematical definition of a semiring as well as semiring examples suited for the application to deep neural networks.
 
 \begin{definition}[Semiring]
-    A \emph{semiring} is an algebraic structure generalizing the notion of rings. A semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$ is composed of a set $\mathbb{K}$, binary operators $\oplus$ and $\otimes$ such that $\otimes$ distributes over $\oplus$, verifying the following properties:
+    A \emph{semiring} is an algebraic structure generalizing the notion of rings. A semiring $(\K, \oplus, \otimes, \0, \1)$ is composed of a set $\K$, binary operators $\oplus$ and $\otimes$ such that $\otimes$ distributes over $\oplus$, verifying the following properties:
     \begin{itemize}
-        \item $(\mathbb{K}, \oplus, \mathbf{0})$ is a commutative monoid
-        \item $(\mathbb{K}, \otimes, \mathbf{1})$ is a monoid such that $\mathbf{0}$ is absorbing
+        \item $(\K, \oplus, \0)$ is a commutative monoid
+        \item $(\K, \otimes, \1)$ is a monoid such that $\0$ is absorbing
     \end{itemize}
 \end{definition}
 
@@ -128,11 +134,58 @@ In the following, we provide a mathematical definition of a semiring as well as 
 \end{example}
 
 \section{Extending LRP using Semiring Annotations}
-\subsection{Semiring generalization of the LRP rule}
+We aim at extending Layer-wise Relevance Propagation by annotating the computational graph of a neural network with semiring elements.
+
+\subsection{Semiring generalization of the LRP rules}
+LRP rules all inherit the same structure, in which the relevance of a pixel can be expressed as the weighted sum of the relevance of pixels of the next layer:
+\begin{equation}
+    R_j^{(l)} = \sum_k d_{j, k}^{(l)} \cdot R_k^{(l+1)}
+    \label{eq:general-lrp}
+\end{equation}
+where the $d_{j,k}^{(l)}$ are some coefficients proportional to the extent to which neuron $j$ of the $l$-th layer has contribued to make neuron $k$ of the $(l+1)$-th layer relevant.
+
+\autoref{eq:general-lrp} is the special real-valued case of a more general rule. Let $(\K, \oplus, \otimes, \0, \1)$ be a semiring, and $(\Theta^{(l)})_l$ be conversion functions of the form $\R\to\K$. We call $\K$-relevance for output neuron $y$ the quantity $R\in\K$ inductively defined by:
+\begin{equation}
+    R^{(L)}_i = \begin{cases*}
+        \1 & if $i = y$\\
+        \0 & otherwise
+    \end{cases*}
+    \label{eq:semiring-lrp-init}
+\end{equation}
+and
+\begin{equation}
+    R^{(l)}_j = \bigoplus_{k}\Theta^{(l)}(d_{j,k}) \otimes R^{(l+1)}_k
+    \label{eq:semiring-lrp-rec}
+\end{equation}
+Note that choosing $(\R,+,\times,0,1)$ as a semiring and $\Theta^{(l)}=x\mapsto x$ retrieves classical LRP up to a multiplicative factor of $a_i^{(L)}$ on each layer (which does not appear on the semiring initialization).
+
+Equations \ref{eq:semiring-lrp-init} and \ref{eq:semiring-lrp-rec} can be intuitively interpreted in two ways. Firstly, they can be seen as the abstraction of an LRP computation using formal semiring elements. Computing $\K$-relevance for an execution of the network results in an abstract formula in terms of elements of $\K$ and operations $\oplus$ and $\otimes$. While this might be useful in the context of graph provenance, visualizing abstract formulas is difficult because of the size of computational graphs associated to neural networks. Furthermore, the general structure of the formulas is always the same for a specific model, since neural networks usually have very simple computational graphs structures. 
+
+Therefore, a second approach that fits the graph properties of neural networks is to interpret semiring LRP as operations on an annotated circuit, similarly to \cite{senellart2018provenance}. For instance, in the case of the boolean semiring, computing $\{\bot,\top\}$-relevance consists in taking for each node the logical conjunction of the annotations of its outgoing edges.
+% TODO: add boolean circuit example figure
+
+
 \subsection{Results over the MNIST dataset}
 \subsubsection{Boolean Semiring}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{boolean.png}
+    \caption{Input image and $\{\bot,\top\}$-relevance for the output neuron \texttt{0}}
+\end{figure}
+
 \subsubsection{Counting Semiring}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{counting.png}
+    \caption{Input image and $\N$-relevance for the output neuron \texttt{0}}
+\end{figure}
+
 \subsubsection{Viterbi Semiring}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{viterbi.png}
+    \caption{Input image and $[0, 1]$-relevance for the output neuron \texttt{0}}
+\end{figure}
 
 \section{Handling of convolutional neural networks}
 \subsection{Computing relevance for convolutional layers}
