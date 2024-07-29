@@ -11,8 +11,8 @@
 \graphicspath{{../cs-classes}{../images}}
 
 \newcommand*{\K}{\mathbb{K}}
-\newcommand*{\1}{\mathbf{1}}
-\newcommand*{\0}{\mathbf{0}}
+\newcommand*{\1}{\digitsbb{1}}
+\newcommand*{\0}{\digitsbb{0}}
 
 \begin{document}
 \begin{abstract}
@@ -191,6 +191,26 @@ Therefore, a second approach that fits the graph properties of neural networks i
 \subsection{Computing relevance for convolutional layers}
 \subsubsection{Forward pass}
 \subsubsection{Gradient expression of LRP}
+Classical LRP rules can be easily and efficiently implemented. A general rule encapsulating LRP-0/$\epsilon$/$\gamma$ can be written as:
+\begin{equation}
+    R_j^{(l)} = \sum_k\frac{a_j\cdot\rho(w_{j,k})}{\epsilon+\sum_{j'}a_{j'}\cdot{\rho(w_{j',k})}} \cdot R_k^{(l+1)}
+\end{equation}
+where $a=a^{(l)}$, $w=w^{(l)}$. Four steps, described in \cite{montavon-lrp}, allow for an efficient and effortless computation of relevance:
+\begin{equation}
+    \begin{aligned}
+        \textstyle\forall k: z_k &= \epsilon + \sum\nolimits_{j'}a_{j'}\cdot\rho(w_{j',k})\\
+        \forall k: s_k &= R_k / z_k\\
+        \forall j: c_j &= \sum\nolimits_k\rho(w_{j',k})\cdot s_k\\
+        \forall j: \!R_j &= a_j\cdot c_j
+    \end{aligned}
+\end{equation}
+
+These steps provide two majors benefits. Firstly, it allows for the costly divisions by $z_k$ to be performed only once per $k$, independently of $j$. Secondly, the third step can be expressed as the computation of a gradient:
+\begin{equation}
+    c_j = \left[\nabla\left(\sum\nolimits_k z_k(a^{(l)})\cdot s_k\right)\right]_j
+\end{equation}
+where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and where the $s_k$ are treated as constants. This allows for a simple and efficient implementation, since the gradient can be computed using automatic differentiation: the high-level code is not only concise (two lines of PyTorch code), but also effortlessly generalizable to any layer implementing backward pass, and highly optimized using GPU operations.
+
 \subsubsection{Implementing LRP without automatic differentiation}
 
 \subsection{Results for the VGG-16 network}
@@ -199,7 +219,37 @@ Therefore, a second approach that fits the graph properties of neural networks i
 
 \section{Applications}
 \subsection{Image mask computation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{boolean-mask.png}
+    \caption{Class-wise mask for $\{\bot, \top\}$-relevance of the class \texttt{0}}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
+    \caption{All classes mask for $\{\bot, \top\}$-relevance}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{counting-mask.png}
+    \caption{Class-wise mask for $\N$-relevance of the class \texttt{0}}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{counting-mask-all.png}
+    \caption{All classes mask for $\N$-relevance}
+\end{figure}
+
 \subsection{Network pruning using LRP ranking}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{pruning-graph-large.png}
+    \caption{Accuracy and loss evolution during network pruning\\ for different neuron selection methods}
+\end{figure}
+
 \subsection{Comparison to image perturbation}
 
 \newpage
