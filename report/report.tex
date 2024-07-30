@@ -180,16 +180,17 @@ Boolean relevance can be computed using the boolean semiring $(\B=\{\bot, \top\}
 \end{equation}
 where $\theta$ is a hyperparameter called the threshold. A higher threshold reduces the number of $\top$ coefficients, ultimately reducing the number of input neurons having a relevance equal to $\top$. Choosing $\theta=10^{-9}$ filters out null and negative contributions to the output while maintaining a sufficient amount of activated inputs for visualization.
 
-The full propagation equation becomes:
-\begin{equation}
-    R^{(l)}_j := \bigvee_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \land R^{(l+1)}_k
-\end{equation}
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{boolean.png}
     \caption{Input image and $\B$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$}
 \end{figure}
+
+The full propagation equation becomes:
+\begin{equation}
+    R^{(l)}_j := \bigvee_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \land R^{(l+1)}_k
+\end{equation}
+
 $\B$-relevance provides a higher level explanation, highlighting large zones of the input image which contribute the most to the final classification.
 Naturally, information about nuances in the contribution is lost. Intuitively, activated pixels (input neurons with relevance $\top$) are neurons such that there exists a \say{relevant} path from this neuron to the output neuron of the class \texttt{0}. A relevant path is a path in which all edges have a weight higher than the threshold $\theta$. While this condition might seem quite restrictive, note that computation graphs for neural networks are densely connected: there is $784\times300\times100=23\,520\,000$ different paths connecting one input pixel to the output neuron of the class \texttt{0}.
 
@@ -262,14 +263,16 @@ These steps provide two majors benefits. Firstly, it allows for the costly divis
 \begin{equation}
     c_j = \left[\nabla\left(\sum\nolimits_k z_k(a^{(l)})\cdot s_k\right)\right]_j
 \end{equation}
-where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and where the $s_k$ are treated as constants. This allows for a simple and efficient implementation, since the gradient can be computed using automatic differentiation: the high-level code is not only concise (two lines of PyTorch code), but also effortlessly generalizable to any layer implementing backward pass, and highly optimized using GPU operations.
+where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and where the $s_k$ are treated as constants. This allows for a simple and efficient implementation, since the gradient can be computed using automatic differentiation: the high-level code is not only concise (two lines of PyTorch code), but also effortlessly generalizable  to any layer implementing backward pass, and highly optimized using GPU operations.
 
 \subsubsection{Implementing LRP without automatic differentiation}
+While the gradient-based expression is convenient for classical LRP, 
 
 \subsection{Results for the VGG-16 network}
+% TODO: add graph of the VGG network
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{vgg-boolean.png}
+    \includegraphics[width=.9\textwidth]{vgg-boolean.png}
     \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
 \end{figure}
 
