@@ -229,7 +229,7 @@ To ensure that values belong to the $[0, 1]$ set, the following rule is used:
 \begin{equation}
     R^{(l)}_j = \max_k \underbrace{\left(\frac{\left|a_j\cdot w_{j, k}\right|}{\max_{j'} \left|a_{j'}\cdot w_{j', k}\right|}\right)}_{\in[0, 1]} \cdot R^{(l+1)}_k
 \end{equation}
-In practice, a small amount such as \texttt{1e-9} can be added to each denominator to prevent from dividing by zero in the case where each $|a_j\cdot w_{j,k}|$ is null.
+In practice, a small amount such as \texttt{1e-9} can be added to the denominator to prevent from dividing by zero in the case where each $|a_{j'}\cdot w_{j',k}|$ is null.
 
 \section{Handling of Convolutional Neural Networks}
 If LRP rules are well-suited for simple, feedforward neural networks, most use cases of explanations occur with larger models, namely deep convolutional neural networks (CNNs). We explain how previously introduced rules can be adapted to CNNs, and provide visualization examples for the VGG-16 model.
@@ -266,7 +266,28 @@ These steps provide two majors benefits. Firstly, it allows for the costly divis
 where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and where the $s_k$ are treated as constants. This allows for a simple and efficient implementation, since the gradient can be computed using automatic differentiation: the high-level code is not only concise (two lines of PyTorch code), but also effortlessly generalizable  to any layer implementing backward pass, and highly optimized using GPU operations.
 
 \subsubsection{Implementing LRP without automatic differentiation}
-While the gradient-based expression is convenient for classical LRP, 
+While the gradient-based expression is convenient for classical LRP, it does not allow for the overloading of sum and product operations, making it impossible to use with a semiring of our choice. To overcome this limitation, we explicitely derive the dependency between input and output neurons of the convolutional layer, resulting in less flexible code. 
+
+Notice that the sum of contributions of one neuron to the output can be expressed as a convolution over the output. That is, in a formula of the form:
+\begin{equation*}
+    R_j^{(l)} = \sum_k \frac{z_{j,k}}{\sum_{j'}z_{j',k}} \cdot R_k^{(l+1)}
+\end{equation*}
+the sum in the denominator, $\sum_{j'}z_{j',k}$, can be expressed as a forward pass of the convolutional layer, that is a convolution over the input; in contrast, the main sum, $\sum_k$, can be expressed as a convolution over the output relevance.
+
+% TODO
+
+\subsubsection{Other CNN layers}
+Most deep convolutional neural networks contain other special layers. We provide a general description of how these were handled in our experiments on the VGG-16 model.
+
+\paragraph*{Average Pooling}
+Such layers can be seen as convolutional layers with fixed weights, in which each weight of the kernel is identical. In practice, most average pooling layers are used with a stride equal to the kernel size $K$, creating no overlapping. Therefore, the propagation rule for average pooling layers can be simplified as:
+\begin{equation}
+    R^{(l)}[i][j] := \Theta(d_{i,j}) \otimes R^{(l+1)}[i/K][j/K]
+\end{equation}
+where $K$ is the kernel size.
+
+\paragraph*{Batch Normalization Layers}
+At test time, normalization layers act as a linear operatioin, and can therefore be fused with the previous linear layer. LRP and semiring-based LRP can then be applied directly to the fused layer.
 
 \subsection{Results for the VGG-16 network}
 % TODO: add graph of the VGG network
