@@ -28,6 +28,12 @@ However, this versatility comes at the cost of poor interpretability: a neural n
 \subsection{Layer-wise Relevance Propagation}
 Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a technique to explain an execution of a neural network. LRP is a procedure propagating the output of the function backward in the network, using diverse rules to compute the \emph{relevance} of a neuron depending on the relevances of the neurons of the upstream layer. LRP introduces the notion of \emph{relevance score} for a neuron, intuitively quantifying the contribution of this neuron to the classification of final classification. A high relevance score indicates that the neuron led to the activation of the considered output; a negative relevance score represents neurons that increased the activation of another output neuron instead of the one considered.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{LRP.png}
+    \caption{Illustration of LRP. The leftmost part corresponds to the forward pass, while relevance propagation is visualized in the rightmost part.}
+\end{figure}
+
 \subsubsection{Setup and notations}
 In the following, we consider a deep neural network used for a classification task. We assume that it uses the rectifier activation function\footnote{That is $\ReLU(x)=\max(0, x)$, where ReLU stands for \emph{Rectified Linear Unit}.}, which is the case in most applications. To ease the notation, we will not consider biases but instead assume that the first neuron of each layer represents the bias. 
 
@@ -37,7 +43,7 @@ Let $L$ be the number of layers of the network, including the input and output l
 \end{equation*}
 and we define $w^{(l)}_{0, k}$ to be the bias of the $k$-th neuron of the $(l+1)$-th layer. The forward propagation rule of a deep rectifier network is therefore:
 \begin{equation}
-    \forall l\in\iset{1}{L-1}, \forall k, \quad a^{(l+1)}_k = \ReLU\left(\sum_{j=0}a^{(l)}_j w^{(l)}_{j, k}\right) = \max\left(0, \sum_{j=0}a^{(l)}_j w^{(l)}_{j, k}\right)
+    \forall l\in\iset{1}{L-1}, \forall k, \quad a^{(l+1)}_k = \ReLU\left(\sum_{j}a^{(l)}_j w^{(l)}_{j, k}\right) = \max\left(0, \sum_{j}a^{(l)}_j w^{(l)}_{j, k}\right)
 \end{equation}
 
 We denote by $R^{(l)}_j$ the relevance of the $j$-th neuron of the $l$-th layer. We assume that the output layer represents a one-hot encoding, that is that the belonging of the input to the $i$-th class is represented by an output vector is of the form $(0, \dots, a^{(L)}_i, \dots, 0)$, where the only non-null coefficient is in the $i$-th position. Finally, we denote by $y$ the label of a classified input. To the label $y=i$ is associated the output vector $(0, \dots, a^{(L)}_i, \dots, 0)$.
@@ -61,7 +67,23 @@ The denominator $\sum_{j'}a^{(l)}_{j'}w^{(l)}_{j', k}$ guarantees a conservation
 \end{equation*}
 This allows to keep the information regarding the total activation of the final layer.
 
-% TODO: explain why this rule, using the slides picture
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=.6]
+        \draw[thick] (0,0) -- (4, 2) node[above=.12, pos=.6] {$w_{j,1}$};
+        \draw[thick] (0,0) -- (4, .7) node[below, pos=.6] {$w_{j,2}$};
+        \draw[thick] (0,0) -- (4, -2) node[below=.12, pos=.6] {$w_{j,m}$};
+
+        \node at (0, 1) {$a_j^{(l)}$};
+        \draw[thick, fill=red!20,circle,minimum size=15] (0, 0) circle (10pt) node[left] {$R_j^{(l)}$};
+
+        \draw[thick, fill=red!60,circle,minimum size=15] (4, 2) circle (10pt) node[right=.2] {$R_1^{(l+1)}$};
+        \draw[thick, fill=red!10,circle,minimum size=15] (4, .7) circle (10pt) node[right=.2] {$R_2^{(l+1)}$};
+        \node at (4, -.4) {$\vdots$};
+        \draw[thick, fill=red!35,circle,minimum size=15] (4, -2) circle (10pt) node[right=.2] {$R_m^{(l+1)}$};
+    \end{tikzpicture}
+    \caption{Node-level illustration of relevance propagation}
+\end{figure}
 
 The application of this simple rule can lead into noisy results that do not scale well. An overview of variations of LRP-0 is provided by \cite{montavon-lrp}; not all rules are suitable for all layers. Complex deep neural networks architectures benefit from enhanced rules such as LRP-$\epsilon$ or LRP-$\gamma$, which provide more stable explanations.
 
@@ -189,6 +211,7 @@ where $\theta$ is a hyperparameter called the threshold. A higher threshold redu
 The full propagation equation becomes:
 \begin{equation}
     R^{(l)}_j := \bigvee_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \land R^{(l+1)}_k
+    \label{eq:boolean-lrp}
 \end{equation}
 
 $\B$-relevance provides a higher level explanation, highlighting large zones of the input image which contribute the most to the final classification.
@@ -207,16 +230,17 @@ The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance 
 \end{equation}
 but operations $+$ and $\times$ bring more expressivity to the framework, bringing more nuance in the highlighted zones.
 
-The full propagation equation becomes:
-\begin{equation}
-    R^{(l)}_j := \sum_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \times R^{(l+1)}_k
-\end{equation}
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{counting.png}
     \caption{Input image and $\N$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$.\\ Highest relevance is 2098.}
 \end{figure}
+
+The full propagation equation becomes:
+\begin{equation}
+    R^{(l)}_j := \sum_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \times R^{(l+1)}_k
+    \label{eq:counting-lrp}
+\end{equation}
 
 \subsubsection{Viterbi Semiring}
 The Viterbi semiring $([0, 1], \max, \times, 0, 1)$ replaces the $+$ of the classical real semiring by a $\max$. In a context where neurons can have the same weighted sum of relevance, taking the maximum of the relevance emphasizes the very most important neurons, giving a more contrasted visualization than classical LRP. 
@@ -231,7 +255,7 @@ To ensure that values belong to the $[0, 1]$ set, the following rule is used:
 \end{equation}
 In practice, a small amount such as \texttt{1e-9} can be added to the denominator to prevent from dividing by zero in the case where each $|a_{j'}\cdot w_{j',k}|$ is null.
 
-\section{Handling of Convolutional Neural Networks}
+\section{Handling Convolutional Neural Networks}
 If LRP rules are well-suited for simple, feedforward neural networks, most use cases of explanations occur with larger models, namely deep convolutional neural networks (CNNs). We explain how previously introduced rules can be adapted to CNNs, and provide visualization examples for the VGG-16 model.
 
 \subsection{Computing relevance for convolutional layers}
@@ -290,17 +314,46 @@ where $K$ is the kernel size.
 At test time, normalization layers act as a linear operatioin, and can therefore be fused with the previous linear layer. LRP and semiring-based LRP can then be applied directly to the fused layer.
 
 \subsection{Results for the VGG-16 network}
-% TODO: add graph of the VGG network
+We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.6\textwidth]{vgg-architecture.png}
+    \caption{Architecture of the VGG-16 network.}
+\end{figure}
+A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose one conversion function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based conversion functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
+
+\subsubsection{Boolean semiring}
+$\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\textwidth]{vgg-boolean.png}
     \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
+    \label{fig:vgg-boolean}
+\end{figure}
+While classical LRP provide a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center.
+
+\subsubsection{Counting semiring}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.65\textwidth]{vgg-counting.png}
+    \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated\\ using a sum, like for composite LRP.}
 \end{figure}
 
 \subsection{Thresholds choice}
+\label{seq:thresholds-choice}
+Equations such as \ref{eq:boolean-lrp} and \ref{eq:counting-lrp} provide thresholds which must be ajusted to provide meaningful explanation. Selecting such parameters optimally requires a proper definition of explanation quality, which is a separate research domain \cite{samek2016evaluating}. Nevertheless, only some ranges of threshold values provide a final result that is humanly interpretable. Threshold values that are too high result in visualizations containing little to no information; relevance is \say{lost} in the deepest layers and only a few input neurons are marked as relevant. Threshold values that are too low result in over-saturated visualizations; for instance, boolean relevance selects most neurons as relevant, loosing meaningful information in the amount of activated pixels.
+
+We provide threshold values, used in \autoref{fig:vgg-boolean}, that offer a balanced explanation. Modifiying these values by small amounts allow the user to choose between a more precise or more general explanation.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.65\textwidth]{threshold-graph.png}
+    \caption{Variation of the threshold of convolutional layers used to compute $\B$-relevance}
+\end{figure}
+
+While those parameters were handpicked, they appear to be correlated to parameters of the layers.
 
 \section{Applications}
-\subsection{Image mask computation}
+\subsection{Image mask computation} 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{boolean-mask.png}
@@ -333,8 +386,22 @@ At test time, normalization layers act as a linear operatioin, and can therefore
 \end{figure}
 
 \subsection{Comparison to image perturbation}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[c]{.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{attack-graph-1.png}
+    \end{minipage}
+    \begin{minipage}[c]{.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{attack-graph-2.png}
+    \end{minipage}
+    \caption{Accuracy drop for multiple pixels attacks strategies.}
+\end{figure}
 
 \section{Conclusion}
+
+\section*{Acknowldegements}
 
 \nocite{*}
 \printbibliography
