@@ -332,23 +332,26 @@ $\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it spe
     \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
     \label{fig:vgg-boolean}
 \end{figure}
-While classical LRP provide a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center.
+While classical LRP provides a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center.
 
 \subsubsection{Counting semiring}
+Counting semiring produces an explanation qualitatively similar to classical LRP. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.65\textwidth]{vgg-counting.png}
     \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated\\ using a sum, like for composite LRP.}
 \end{figure}
 
+\subsubsection{Viterbi semiring}
+
 \subsection{Thresholds choice}
 \label{seq:thresholds-choice}
-Equations such as \ref{eq:boolean-lrp} and \ref{eq:counting-lrp} provide thresholds which must be ajusted to provide meaningful explanation. Selecting such parameters optimally requires a proper definition of explanation quality, which is a separate research domain \cite{samek2016evaluating}. Nevertheless, only some ranges of threshold values provide a final result that is humanly interpretable. Threshold values that are too high result in visualizations containing little to no information; relevance is \say{lost} in the deepest layers and only a few input neurons are marked as relevant. Threshold values that are too low result in over-saturated visualizations; for instance, boolean relevance selects most neurons as relevant, loosing meaningful information in the amount of activated pixels.
+Equations such as \ref{eq:boolean-lrp} and \ref{eq:counting-lrp} introduce thresholds which must be ajusted to provide meaningful explanation. Selecting such parameters optimally requires a proper definition of explanation quality, which is a separate research domain \cite{samek2016evaluating}. Nevertheless, only some ranges of threshold values guarantee a final result that is humanly interpretable. Threshold values that are too high result in visualizations containing little to no information; relevance is \say{lost} in the deepest layers and only a few input neurons are marked as relevant. Threshold values that are too low result in over-saturated visualizations; for instance, boolean relevance selects most neurons as relevant, loosing meaningful information in the amount of activated pixels.
 
-We provide threshold values, used in \autoref{fig:vgg-boolean}, that offer a balanced explanation. Modifiying these values by small amounts allow the user to choose between a more precise or more general explanation.
+We propose threshold values, used in \autoref{fig:vgg-boolean}, that offer a balanced explanation. Modifiying these values by small amounts allow the user to choose between a more precise or more general explanation.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.65\textwidth]{threshold-graph.png}
+    \includegraphics[width=.6\textwidth]{threshold-graph.png}
     \caption{Variation of the threshold of convolutional layers used to compute $\B$-relevance}
 \end{figure}
 
