@@ -186,6 +186,8 @@ Equations \ref{eq:semiring-lrp-init} and \ref{eq:semiring-lrp-rec} can be intuit
 Therefore, a second approach that fits the graph properties of neural networks is to interpret semiring LRP as operations on an annotated circuit, similarly to \cite{senellart2018provenance}. For instance, in the case of the boolean semiring, computing $\B$-relevance consists in taking for each node the logical conjunction of the annotations of its outgoing edges.
 % TODO: add boolean circuit example figure
 
+Similarly to the implementation of provenance in databases by tools such as ProvSQL \cite{provsql}, we implemented a Python module on top of PyTorch\footnote{\href{https://pytorch.org}{\texttt{https://pytorch.org}}}, providing an interface to compute $\K$-relevance for any custom semiring $\K$.
+
 
 \subsection{Results over the MNIST dataset}
 We provide experimental results of the implementation of semiring-based LRP. In the following, we use the same fully-connected network as in \autoref{fig:mnist-lrp}, with layers of sizes $28\times28$, $300$, $100$ and $10$ and trained on the MNIST dataset.
@@ -352,7 +354,11 @@ We provide threshold values, used in \autoref{fig:vgg-boolean}, that offer a bal
 
 While those parameters were handpicked, they appear to be correlated to parameters of the layers.
 
+% TODO
+
 \section{Applications}
+Finally, we explore multiple applications of semiring-based LRP, going beyond the scope of simple execution-wise explanations. While LRP was intended as a tool to interpret a single execution of the network, we believe that averaging relevance scores of neurons over multiple executions can produce a meaningful metric of the \say{importance} of each neuron. Through three applications, we put forwards both qualitative and quantitative arguments supporting this view.
+
 \subsection{Image mask computation} 
 \begin{figure}[H]
     \centering
@@ -379,11 +385,17 @@ While those parameters were handpicked, they appear to be correlated to paramete
 \end{figure}
 
 \subsection{Network pruning using LRP ranking}
+The accuracy of modern neural networks often come at the cost of large model size, increasing both storage, computational cost and inference time. To reduce the size of such models, an efficient technique called \emph{network pruning} has been studied \cite{pruning-survey,new-pruning}, in which neurons are removed from the network. A simple approach to selecting which neurons to prune is to select those with the smallest $\ell_1$ or $\ell_2$ norm: that is, those whose associated column in the weight matrix has the smallest norm. While this selection method yields good results, we show that removing neurons with the smallest average relevance -- in the sense of LRP -- allows the network to perform better.
 \begin{figure}[H]
     \centering
     \includegraphics[width=.7\textwidth]{pruning-graph-large.png}
     \caption{Accuracy and loss evolution during network pruning\\ for different neuron selection methods}
+    \label{fig:pruning-graph}
 \end{figure}
+
+\autoref{fig:pruning-graph} compares multiple selection methods. For each method, the network was evaluated multiple times on a subset of the MNIST test set, each time with an increasing number of neurons pruned, selected using the specific method. For LRP-based methods, the relevance of each neuron is computed by taking its average relevance on LRP results over images of the train set, and neurons with the lowest absolute relevance are pruned first.
+
+Three curve clusters can be identified: boolean and counting LRP perform much worse than other selection methods, which can be explained by the lack of granularity in the explanation that these techniques provide. $\ell_1$ and $\ell_2$ norm selection methods provide a baseline to compare LRP techniques to, and both perform similarly well. Finally, classic LRP and Viterbi LRP outperform the norm-based methods by a small amount: this confirms the intuition that LRP provide a more subtle explanation than simply the magnitude of the weights connected to a neuron.
 
 \subsection{Comparison to image perturbation}
 \begin{figure}[H]
@@ -402,11 +414,12 @@ While those parameters were handpicked, they appear to be correlated to paramete
 \section{Conclusion}
 
 \section*{Acknowldegements}
+I would like to thank Silviu Maniu for his guidance and support throughout this internship. I thank Pierre Senellart for his feedback and advices. Thanks to the LIG and specifically to the members of the SLIDE team. In particular, thanks to Alan Gany, Nassim Bouarour for their help, and thanks to Paul Landrier for his suggestions.
 
 \nocite{*}
 \printbibliography
 
 \newpage
-\section*{Appendices}
+\appendix
 
 \end{document}
