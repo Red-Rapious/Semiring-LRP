@@ -9,6 +9,8 @@
 \setbeamercolor{footline}{fg=blue!50}
 \setbeamerfont{footline}{series=\bfseries}
 
+\DeclareMathAlphabet{\digitsbb}{U}{bbold}{m}{n}
+
 \usefonttheme[onlymath]{serif}
 
 \usepackage{cmap}
@@ -72,7 +74,7 @@
  {Antoine Groudiev, Silviu Maniu}
 }
 
-\date{Tuesday, July 9th}
+\date{\today}
 
 \begin{document}
 \frame{\titlepage}
@@ -135,7 +137,7 @@
 \begin{frame}{Layerwise Relevance Propagation}{Propagation}
     LRP-0 rule:
     \begin{equation}
-        R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} R^{(l+1)}_k
+        R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} \cdot R^{(l+1)}_k
     \end{equation}
     \begin{figure}
         \centering
@@ -180,25 +182,25 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{Pertinence of LRP results}
-    \begin{figure}
-        \centering
-        \begin{tikzpicture}
-            \draw[->, thick] (-6.5, 1) -- ++ (3, 0) node [above, pos=.5] {\small Image label (0)};
-            \draw[->, thick] (-6.5, -1.5) -- ++ (3, 0) node [below, pos=.5] {\small Useless digit};
-            \node at (0, 0) {\includegraphics[width=.5\textwidth]{dmnist-lrp.png}};
-        \end{tikzpicture}
-    \end{figure}
-\end{frame}
+% \begin{frame}{Pertinence of LRP results}
+%     \begin{figure}
+%         \centering
+%         \begin{tikzpicture}
+%             \draw[->, thick] (-6.5, 1) -- ++ (3, 0) node [above, pos=.5] {\small Image label (0)};
+%             \draw[->, thick] (-6.5, -1.5) -- ++ (3, 0) node [below, pos=.5] {\small Useless digit};
+%             \node at (0, 0) {\includegraphics[width=.5\textwidth]{dmnist-lrp.png}};
+%         \end{tikzpicture}
+%     \end{figure}
+% \end{frame}
 
 \subsection{Semiring-based provenance annotations}
 \begin{frame}{Semiring-based provenance annotations \cite{green-2007,ramusat-prov}}
     \begin{definition}[Semiring]
-        A semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$ is such that:
+        A semiring $(\mathbb{K}, \oplus, \otimes, \digitsbb{0}, \digitsbb{1})$ is such that:
         \begin{itemize}[label=--, noitemsep]
             \item $\otimes$ distributes over $\oplus$,
-            \item $(\mathbb{K}, \oplus, \mathbf{0})$ is a commutative monoid,
-            \item $(\mathbb{K}, \otimes, \mathbf{1})$ is a monoid such that $\mathbf{0}$ is absorbing
+            \item $(\mathbb{K}, \oplus, \digitsbb{0})$ is a commutative monoid,
+            \item $(\mathbb{K}, \otimes, \digitsbb{1})$ is a monoid such that $\digitsbb{0}$ is absorbing
         \end{itemize}
     \end{definition}
 
@@ -214,47 +216,43 @@
 \end{frame}
 
 \section{Extending LRP}
-\begin{frame}{Simplifying LRP rule}
-    Remove the denominator:
-    \begin{equation*}
-        R^{(l)}_j = \sum_k\frac{a^{(l)}_jw_{j, k}^{(l)}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}^{(l)}} R^{(l+1)}_k \quad \longrightarrow \quad R^{(l)}_j = \sum_{k} a^{(l)}_jw_{j, k}^{(l)} \cdot R^{(l+1)}_k
-    \end{equation*}
-    \newline{}
-    Use only LRP-0 rule (no $\varepsilon$, $\gamma$, $z^\mathcal{B}$, \dots)
-\end{frame}
+% \begin{frame}{Simplifying LRP rule}
+%     Remove the denominator:
+%     \begin{equation*}
+%         R^{(l)}_j = \sum_k\frac{a^{(l)}_jw_{j, k}^{(l)}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}^{(l)}} R^{(l+1)}_k \quad \longrightarrow \quad R^{(l)}_j = \sum_{k} a^{(l)}_jw_{j, k}^{(l)} \cdot R^{(l+1)}_k
+%     \end{equation*}
+%     \newline{}
+%     Use only LRP-0 rule (no $\varepsilon$, $\gamma$, $z^\mathcal{B}$, \dots)
+% \end{frame}
 
+\subsection{Rules modification}
 \begin{frame}{Semiring generalization of the LRP rule}
-    Consider a semiring $(\mathbb{K}, \oplus, \otimes, \mathbf{0}, \mathbf{1})$
+    Consider a semiring $(\mathbb{K}, \oplus, \otimes, \digitsbb{0}, \digitsbb{1})$
 
-    Conversion functions for activations and weights:
+    Conversion function:
     \begin{equation*}
-        \begin{aligned}
-            \Theta_a\: : \mathbb{R} \!\!&\longrightarrow \mathbb{K}\\
-            \Theta_w : \mathbb{R} &\longrightarrow \mathbb{K}
-        \end{aligned}
+        \Theta : \mathbb{R} \longrightarrow \mathbb{K}
     \end{equation*}
     Initialization:
     \begin{equation}
         R^{(L)}_i = \begin{cases*}
-            \textcolor{red}{\Theta_a\left(a^{(L)}_i\right)} & if $i = y$\\
-            \mathbf{0} & otherwise
+            \digitsbb{1} & if $i = y$\\
+            \digitsbb{0} & otherwise
         \end{cases*}
     \end{equation}
     Propagation rule:
     \begin{equation}
-        R^{(l)}_j = \bigoplus_k \Theta_a\left(a^{(l)}_j\right) \otimes \Theta_w\left(w_{j, k}^{(l)}\right) \otimes R^{(l+1)}_k
+        R^{(l)}_j = \bigoplus_k \Theta\left(
+            \frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} 
+        \right) \otimes R^{(l+1)}_k
     \end{equation}
 \end{frame}
 
+\subsection{MNIST dataset}
 \begin{frame}{Boolean Semiring}{\large $(\{\bot, \top\}, \lor, \land, \bot, \top)$}
     \begin{equation*}
-        \Theta_a = a \longmapsto \begin{cases*}
-            \top & if $a\geq\theta_a$\\
-            \bot & otherwise
-        \end{cases*}
-        \qquad\qquad
-        \Theta_w = w \longmapsto \begin{cases*}
-            \top & if $w\geq\theta_w$\\
+        \Theta = x \longmapsto \begin{cases*}
+            \top & if $x\geq\theta$\\
             \bot & otherwise
         \end{cases*}
     \end{equation*}
@@ -265,22 +263,17 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{Influence of the thresholds}
-    \begin{figure}
-        \centering
-        \includegraphics[width=.6\textwidth]{boolean-threshold.png}
-    \end{figure}
-\end{frame}
+% \begin{frame}{Influence of the thresholds}
+%     \begin{figure}
+%         \centering
+%         \includegraphics[width=.6\textwidth]{boolean-threshold.png}
+%     \end{figure}
+% \end{frame}
 
 \begin{frame}{Counting Semiring}{\large $(\mathbb{N}, +, \times, 0, 1)$}
     \begin{equation*}
-        \Theta_a = a \longmapsto \begin{cases*}
-            1 & if $a\geq\theta_a$\\
-            0 & otherwise
-        \end{cases*}
-        \qquad\qquad
-        \Theta_w = w \longmapsto \begin{cases*}
-            1 & if $w\geq\theta_w$\\
+        \Theta = x \longmapsto \begin{cases*}
+            1 & if $x\geq\theta$\\
             0 & otherwise
         \end{cases*}
     \end{equation*}
@@ -299,6 +292,21 @@
     \begin{figure}[H]
         \centering
         \includegraphics[width=.5\textwidth]{viterbi.png}
+    \end{figure}
+\end{frame}
+
+\subsection{VGG-16 network}
+\begin{frame}{Boolean semiring}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{vgg-boolean.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Counting semiring}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.8\textwidth]{vgg-counting.png}
     \end{figure}
 \end{frame}
 
@@ -365,6 +373,22 @@
 \end{frame}
 
 \begin{frame}
+    \begin{figure}[H]
+        \hspace*{-.5cm}
+        \begin{minipage}{.49\textwidth}
+            \centering
+            \includegraphics[width=1.1\textwidth]{attack-graph-1.png}
+        \end{minipage}
+        \begin{minipage}{.49\textwidth}
+            \centering
+            \includegraphics[width=1.1\textwidth]{attack-graph-2.png}
+        \end{minipage}
+        \caption{Accuracy drop for multiple pixels attacks strategies.}
+        \label{fig:attack-graphs}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
     \nocite{*}
     \printbibliography
 \end{frame}
