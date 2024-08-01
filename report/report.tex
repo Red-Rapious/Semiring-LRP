@@ -82,7 +82,7 @@ This allows to keep the information regarding the total activation of the final 
         \node at (4, -.4) {$\vdots$};
         \draw[thick, fill=red!35,circle,minimum size=15] (4, -2) circle (10pt) node[right=.2] {$R_m^{(l+1)}$};
     \end{tikzpicture}
-    \caption{Node-level illustration of relevance propagation}
+    \caption{Node-level illustration of relevance propagation.}
 \end{figure}
 
 The application of this simple rule can lead into noisy results that do not scale well. An overview of variations of LRP-0 is provided by \cite{montavon-lrp}; not all rules are suitable for all layers. Complex deep neural networks architectures benefit from enhanced rules such as LRP-$\epsilon$ or LRP-$\gamma$, which provide more stable explanations.
@@ -362,7 +362,7 @@ While those parameters were handpicked, they appear to be correlated to paramete
 \section{Applications}
 Finally, we explore multiple applications of semiring-based LRP, going beyond the scope of simple execution-wise explanations. While LRP was intended as a tool to interpret a single execution of the network, we believe that averaging relevance scores of neurons over multiple executions can produce a meaningful metric of the \say{importance} of each neuron. Through three applications, we put forwards both qualitative and quantitative arguments supporting this view.
 
-\subsection{Image mask computation} 
+\subsection{Image mask computation}
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{boolean-mask.png}
@@ -371,9 +371,23 @@ Finally, we explore multiple applications of semiring-based LRP, going beyond th
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
-    \caption{All classes mask for $\B$-relevance}
+    \includegraphics[width=.5\textwidth]{dmnist-boolean-mask.png}
+    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
 \end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{dmnist-all-classes.png}
+    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+\end{figure}
+
+% TODO: add double MNIST
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
+%     \caption{All classes mask for $\B$-relevance}
+% \end{figure}
 
 \begin{figure}[H]
     \centering
@@ -433,6 +447,11 @@ In other terms, the probability distribution is the softmax of the opposite of t
 Results of \autoref{fig:attack-graphs} show that all LRP distributions outperform the uniform baseline. While LRP does not directly highlight vulnerable pixels, pixels with less relevance are most likely to be resilient to perturbations.
 
 \section{Conclusion}
+We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
+
+We implemented Semiring-based LRP for PyTorch models containing Linear, Convolutional, Spatial pooling, and Activation layers; the user can simply implement its own semiring by overloading the addition, multiplication, $\0$ and $\1$ elements and conversion function. Experimentally, boolean and counting semiring provide scalable explanations that qualitatively differ from classical LRP.
+
+Finally, we explored three examples of applications of semiring-based LRP: mask computation, network pruning, and vulnerable pixels detection. We believe that semiring-based LRP has the potential to provide more than an explanation for a single execution, and those applications tend to show that combining LRP results over multiple executions produces meaningful metrics for the overall relevance of neurons in the network. 
 
 \section*{Acknowldegements}
 I would like to thank Silviu Maniu for his guidance and support throughout this internship. I thank Pierre Senellart for his feedback and advices. Thanks to the LIG and specifically to the members of the SLIDE team. In particular, thanks to Alan Gany, Nassim Bouarour for their help, and thanks to Paul Landrier for his suggestions.
