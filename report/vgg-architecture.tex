@@ -1,0 +1,45 @@
+\begin{tikzpicture}
+    \def\convcol{cyan!30};
+    \def\poolcol{red!40};
+    \def\lincol{green!40};
+
+    \node at (1.6, 2) {\small Conv1};
+    \parallelepiped{(0, 0, 0)}{.175}{5}{4}{}{}{}{\convcol}
+    \parallelepiped{(.3, 0, 0)}{.175}{5}{4}{$\scriptstyle224\times224\times64$}{}{}{\convcol}
+
+    \node at (2.5, .5) {\small Conv2};
+    \parallelepiped{(.7, -1, -1)}{.21}{2.7}{2.1}{}{}{}{\poolcol}
+    \parallelepiped{(1, -1, -1)}{.21}{2.7}{2.1}{}{}{}{\convcol}
+    \parallelepiped{(1.3, -1, -1)}{.21}{2.7}{2.1}{\hspace*{-.4cm}$\scriptstyle112\times112\times128$}{}{}{\convcol}
+
+    \node at (3.5, -.2) {\small Conv3};
+    \parallelepiped{(1.7, -1.8, -2)}{.35}{1.6}{1.2}{}{}{}{\poolcol}
+    \parallelepiped{(2.15, -1.8, -2)}{.35}{1.6}{1.2}{}{}{}{\convcol}
+    \parallelepiped{(2.6, -1.8, -2)}{.35}{1.6}{1.2}{$\scriptstyle56\times56\times256$}{}{}{\convcol}
+    \parallelepiped{(3.05, -1.8, -2)}{.35}{1.6}{1.2}{}{}{}{\convcol}
+
+    \node at (5.5, -.6) {\small Conv4};
+    \parallelepiped{(3.9, -2, -2)}{.55}{.9}{.6}{}{}{}{\poolcol}
+    \parallelepiped{(4.55, -2, -2)}{.55}{.9}{.6}{}{}{}{\convcol}
+    \parallelepiped{(5.2, -2, -2)}{.55}{.9}{.6}{\hspace*{-.4cm}$\scriptstyle28\times28\times512$}{}{}{\convcol}
+    \parallelepiped{(5.85, -2, -2)}{.55}{.9}{.6}{}{}{}{\convcol}
+
+    \node at (8.5, -.9) {\small Conv5};
+    \parallelepiped{(6.75, -2.1, -2)}{.7}{.5}{.3}{}{}{}{\poolcol}
+    \parallelepiped{(7.55, -2.1, -2)}{.7}{.5}{.3}{}{}{}{\convcol}
+    \parallelepiped{(8.35, -2.1, -2)}{.7}{.5}{.3}{\hspace*{-.8cm}$\scriptstyle14\times14\times512$}{}{}{\convcol}
+    \parallelepiped{(9.15, -2.1, -2)}{.7}{.5}{.3}{}{}{}{\convcol}
+
+    \parallelepiped{(10, -2.2, -2)}{.7}{.2}{.15}{$\scriptscriptstyle7\times7$}{}{}{\poolcol}
+
+    \parallelepiped{(10.9, -2.25, -2.05)}{.8}{.1}{.1}{$\scriptstyle4096$}{}{}{\lincol}
+    \parallelepiped{(11.8, -2.25, -2.05)}{.8}{.1}{.1}{$\scriptstyle4096$}{}{}{\lincol}
+    \parallelepiped{(12.4, -2.25, -2.05)}{.5}{.1}{.1}{$\scriptstyle1000$}{}{}{\lincol}
+
+    \parallelepiped{(9,-4)}{.3}{.3}{.2}{}{}{}{\convcol}
+    \node at (11.2,-4.1) {\small Convolutional + ReLU};
+    \parallelepiped{(9,-4.6)}{.3}{.3}{.2}{}{}{}{\poolcol}
+    \node at (10.35,-4.7) {\small Max Pooling};
+    \parallelepiped{(9,-5.2)}{.3}{.3}{.2}{}{}{}{\lincol}
+    \node at (10.6,-5.3) {\small Linear + ReLU};
+\end{tikzpicture}

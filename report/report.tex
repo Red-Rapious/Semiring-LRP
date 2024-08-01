@@ -410,10 +410,11 @@ At test time, normalization layers act as a linear operatioin, and can therefore
 We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.6\textwidth]{vgg-architecture.png}
-    \caption{Architecture of the VGG-16 network.\protect\footnotemark}
+    \input{vgg-architecture.tex}
+    \caption{Architecture of the VGG-16 network.}
+    %\caption{Architecture of the VGG-16 network.\protect\footnotemark}
 \end{figure}
-\footnotetext{Figure reproduced from Max Ferguson et al., `Automatic localization of casting defects with convolutional neural networks.' (2017)}
+%\footnotetext{Figure reproduced from Max Ferguson et al., `Automatic localization of casting defects with convolutional neural networks.' (2017)}
 A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
 
 \subsubsection{Boolean semiring}
@@ -450,6 +451,9 @@ We propose threshold values, used in \autoref{fig:vgg-boolean}, that offer a bal
 While those parameters were handpicked, they appear to be correlated to parameters of the layers.
 
 % TODO
+
+\subsection{Notes on implementation}
+
 
 \section{Conclusion}
 We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
