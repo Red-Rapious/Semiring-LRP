@@ -259,6 +259,95 @@ To ensure that values belong to the $[0, 1]$ set, the following rule is used:
 \end{equation}
 In practice, a small amount such as \texttt{1e-9} can be added to the denominator to prevent from dividing by zero in the case where each $|a_{j'}\cdot w_{j',k}|$ is null.
 
+
+\section{Applications}
+We explore multiple applications of semiring-based LRP, going beyond the scope of simple execution-wise explanations. While LRP was intended as a tool to interpret a single execution of the network, we believe that averaging relevance scores of neurons over multiple executions can produce a meaningful metric of the \say{importance} of each neuron. Through three applications, we put forwards both qualitative and quantitative arguments supporting this view.
+
+\subsection{Image mask computation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{boolean-mask.png}
+    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{dmnist-boolean-mask.png}
+    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{dmnist-all-classes.png}
+    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+\end{figure}
+
+% TODO: add double MNIST
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
+%     \caption{All classes mask for $\B$-relevance}
+% \end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{counting-mask.png}
+    \caption{Class-wise mask for $\N$-relevance of the class \texttt{0}}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{counting-mask-all.png}
+    \caption{All classes mask for $\N$-relevance}
+\end{figure}
+
+\subsection{Network pruning using LRP ranking}
+The accuracy of modern neural networks often come at the cost of large model size, increasing both storage, computational cost and inference time. To reduce the size of such models, an efficient technique called \emph{network pruning} has been studied \cite{pruning-survey,new-pruning}, in which neurons are removed from the network. A simple approach to selecting which neurons to prune is to select those with the smallest $\ell_1$ or $\ell_2$ norm: that is, those whose associated column in the weight matrix has the smallest norm. While this selection method yields good results, we show that removing neurons with the smallest average relevance -- in the sense of LRP -- allows the network to perform better.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{pruning-graph-large.png}
+    \caption{Accuracy and loss evolution during network pruning for different neuron selection methods. Neurons were pruned on the first layer of the same fully-connected network trained on the MNIST dataset. Accuracy and loss are computed over the MNIST test set.}
+    \label{fig:pruning-graph}
+\end{figure}
+
+\autoref{fig:pruning-graph} compares multiple selection methods. For each method, the network was evaluated multiple times on a subset of the MNIST test set, each time with an increasing number of neurons pruned, selected using the specific method. For LRP-based methods, the relevance of each neuron is computed by taking its average relevance on LRP results over images of the train set, and neurons with the lowest absolute relevance are pruned first.
+
+Three curve clusters can be identified: boolean and counting LRP perform much worse than other selection methods, which can be explained by the lack of granularity in the explanation that these techniques provide. $\ell_1$ and $\ell_2$ norm selection methods provide a baseline to compare LRP techniques to, and both perform similarly well. Finally, classic LRP and Viterbi LRP outperform the norm-based methods by a small amount: this confirms the intuition that LRP provide a more subtle explanation than simply the magnitude of the weights connected to a neuron.
+
+\subsection{Comparison to image perturbation}
+In parallel to LRP, other methods aiming at providing a visual explanation of the decision of a classifier have emerged, such as \cite{inverting,visualizing-cnn}. An interesting approach, introduced in \cite{fong2017interpretable}, identifies pixels relevant to the classification by adding perturbations to the image. Intuitively, a pixel is relevant if the classification of the image changes when this pixel is modified. 
+
+In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{attacks.png}
+    \caption{Accuracy sensibility to perturbation by spatial region of the image. Darker zones show drops of accuracies when this zone of the image is perturbed.}
+    \label{fig:mnist-attack}
+\end{figure}
+This results in a visualization of the critical zones of the image, qualitatively different from LRP. While LRP highlights the zones containing the classified object, perturbation methods mostly selects zones outside of the object, where change can lead to confusion with another class: for instance, the zone above the \texttt{4} is strongly highlighted since perburbation in this area might trick the model into believing that the digit is a \texttt{9} instead.
+
+To evaluate to what extent LRP highlights pixels vulnerable to perturbations, we studied the impact of modifications in the zones of high relevance compared to low relevance zones. To do so, we measured the accuracy of the model while progressively perturbating more and more pixels of the image. In \autoref{fig:attack-graphs}, we compare the accuracy of the model when pixels are uniformly selected in the image, to the accuracy when pixels are selected with a probability distribution depending on the relevance. If $X$ is the random variable corresponding to the pixel selected to be modified, then:
+\begin{equation}
+    \P(X=i) = \frac{e^{-R_i}}{\sum_je^{-R_j}}
+\end{equation}
+In other terms, the probability distribution is the softmax of the opposite of the relevance; the higher the relevance, the lower the probability that the pixel is affected by a perburbation.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[c]{.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{attack-graph-1.png}
+    \end{minipage}
+    \begin{minipage}[c]{.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{attack-graph-2.png}
+    \end{minipage}
+    \caption{Accuracy drop for multiple pixels attacks strategies.}
+    \label{fig:attack-graphs}
+\end{figure}
+Results of \autoref{fig:attack-graphs} show that all LRP distributions outperform the uniform baseline. While LRP does not directly highlight vulnerable pixels, pixels with less relevance are most likely to be resilient to perturbations.
+
+
 \section{Handling Convolutional Neural Networks}
 If LRP rules are well-suited for simple, feedforward neural networks, most use cases of explanations occur with larger models, namely deep convolutional neural networks (CNNs). We explain how previously introduced rules can be adapted to CNNs, and provide visualization examples for the VGG-16 model.
 
@@ -361,93 +450,6 @@ We propose threshold values, used in \autoref{fig:vgg-boolean}, that offer a bal
 While those parameters were handpicked, they appear to be correlated to parameters of the layers.
 
 % TODO
-
-\section{Applications}
-Finally, we explore multiple applications of semiring-based LRP, going beyond the scope of simple execution-wise explanations. While LRP was intended as a tool to interpret a single execution of the network, we believe that averaging relevance scores of neurons over multiple executions can produce a meaningful metric of the \say{importance} of each neuron. Through three applications, we put forwards both qualitative and quantitative arguments supporting this view.
-
-\subsection{Image mask computation}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\textwidth]{boolean-mask.png}
-    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\textwidth]{dmnist-boolean-mask.png}
-    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\textwidth]{dmnist-all-classes.png}
-    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
-\end{figure}
-
-% TODO: add double MNIST
-
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
-%     \caption{All classes mask for $\B$-relevance}
-% \end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\textwidth]{counting-mask.png}
-    \caption{Class-wise mask for $\N$-relevance of the class \texttt{0}}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\textwidth]{counting-mask-all.png}
-    \caption{All classes mask for $\N$-relevance}
-\end{figure}
-
-\subsection{Network pruning using LRP ranking}
-The accuracy of modern neural networks often come at the cost of large model size, increasing both storage, computational cost and inference time. To reduce the size of such models, an efficient technique called \emph{network pruning} has been studied \cite{pruning-survey,new-pruning}, in which neurons are removed from the network. A simple approach to selecting which neurons to prune is to select those with the smallest $\ell_1$ or $\ell_2$ norm: that is, those whose associated column in the weight matrix has the smallest norm. While this selection method yields good results, we show that removing neurons with the smallest average relevance -- in the sense of LRP -- allows the network to perform better.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.7\textwidth]{pruning-graph-large.png}
-    \caption{Accuracy and loss evolution during network pruning for different neuron selection methods. Neurons were pruned on the first layer of the same fully-connected network trained on the MNIST dataset. Accuracy and loss are computed over the MNIST test set.}
-    \label{fig:pruning-graph}
-\end{figure}
-
-\autoref{fig:pruning-graph} compares multiple selection methods. For each method, the network was evaluated multiple times on a subset of the MNIST test set, each time with an increasing number of neurons pruned, selected using the specific method. For LRP-based methods, the relevance of each neuron is computed by taking its average relevance on LRP results over images of the train set, and neurons with the lowest absolute relevance are pruned first.
-
-Three curve clusters can be identified: boolean and counting LRP perform much worse than other selection methods, which can be explained by the lack of granularity in the explanation that these techniques provide. $\ell_1$ and $\ell_2$ norm selection methods provide a baseline to compare LRP techniques to, and both perform similarly well. Finally, classic LRP and Viterbi LRP outperform the norm-based methods by a small amount: this confirms the intuition that LRP provide a more subtle explanation than simply the magnitude of the weights connected to a neuron.
-
-\subsection{Comparison to image perturbation}
-In parallel to LRP, other methods aiming at providing a visual explanation of the decision of a classifier have emerged, such as \cite{inverting,visualizing-cnn}. An interesting approach, introduced in \cite{fong2017interpretable}, identifies pixels relevant to the classification by adding perturbations to the image. Intuitively, a pixel is relevant if the classification of the image changes when this pixel is modified. 
-
-In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{attacks.png}
-    \caption{Accuracy sensibility to perturbation by spatial region of the image. Darker zones show drops of accuracies when this zone of the image is perturbed.}
-    \label{fig:mnist-attack}
-\end{figure}
-This results in a visualization of the critical zones of the image, qualitatively different from LRP. While LRP highlights the zones containing the classified object, perturbation methods mostly selects zones outside of the object, where change can lead to confusion with another class: for instance, the zone above the \texttt{4} is strongly highlighted since perburbation in this area might trick the model into believing that the digit is a \texttt{9} instead.
-
-To evaluate to what extent LRP highlights pixels vulnerable to perturbations, we studied the impact of modifications in the zones of high relevance compared to low relevance zones. To do so, we measured the accuracy of the model while progressively perturbating more and more pixels of the image. In \autoref{fig:attack-graphs}, we compare the accuracy of the model when pixels are uniformly selected in the image, to the accuracy when pixels are selected with a probability distribution depending on the relevance. If $X$ is the random variable corresponding to the pixel selected to be modified, then:
-\begin{equation}
-    \P(X=i) = \frac{e^{-R_i}}{\sum_je^{-R_j}}
-\end{equation}
-In other terms, the probability distribution is the softmax of the opposite of the relevance; the higher the relevance, the lower the probability that the pixel is affected by a perburbation.
-\begin{figure}[H]
-    \centering
-    \begin{minipage}[c]{.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{attack-graph-1.png}
-    \end{minipage}
-    \begin{minipage}[c]{.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{attack-graph-2.png}
-    \end{minipage}
-    \caption{Accuracy drop for multiple pixels attacks strategies.}
-    \label{fig:attack-graphs}
-\end{figure}
-Results of \autoref{fig:attack-graphs} show that all LRP distributions outperform the uniform baseline. While LRP does not directly highlight vulnerable pixels, pixels with less relevance are most likely to be resilient to perturbations.
 
 \section{Conclusion}
 We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
