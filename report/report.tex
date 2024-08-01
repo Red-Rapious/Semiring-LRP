@@ -3,9 +3,8 @@
 \title{Extending Layer-wise Relevance Propagation using Semiring Annotations}
 \author{
     \textbf{Antoine Groudiev}\\L3, DI, ENS
-    \and
-    \textbf{Silviu Maniu}\\Slide Team, LIG, UGA
 }
+\date{}
 
 \addbibresource{report.bib}
 \graphicspath{{../cs-classes}{../images}}
@@ -31,8 +30,9 @@ Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{LRP.png}
-    \caption{Illustration of LRP. The leftmost part corresponds to the forward pass, while relevance propagation is visualized in the rightmost part.}
+    \caption{Illustration of LRP. The leftmost part corresponds to the forward pass, while relevance propagation is visualized in the rightmost part.\protect\footnotemark}
 \end{figure}
+\footnotetext{Figure adapted from \href{https://www.hhi.fraunhofer.de/en/departments/ai/technologies-and-solutions/layer-wise-relevance-propagation.html}{\say{Layer-wise Relevance Propagation}} -- Fraunhofer Institute for Telecommunications}
 
 \subsubsection{Setup and notations}
 In the following, we consider a deep neural network used for a classification task. We assume that it uses the rectifier activation function\footnote{That is $\ReLU(x)=\max(0, x)$, where ReLU stands for \emph{Rectified Linear Unit}.}, which is the case in most applications. To ease the notation, we will not consider biases but instead assume that the first neuron of each layer represents the bias. 
@@ -166,7 +166,9 @@ LRP rules all inherit the same structure, in which the relevance of a pixel can 
 \end{equation}
 where the $d_{j,k}^{(l)}$ are some coefficients proportional to the extent to which neuron $j$ of the $l$-th layer has contribued to make neuron $k$ of the $(l+1)$-th layer relevant.
 
-\autoref{eq:general-lrp} is the special real-valued case of a more general rule. Let $(\K, \oplus, \otimes, \0, \1)$ be a semiring, and $(\Theta^{(l)})_l$ be conversion functions of the form $\R\to\K$. We call $\K$-relevance for output neuron $y$ the quantity $R\in\K$ inductively defined by:
+\autoref{eq:general-lrp} is the special real-valued case of a more general rule. Let $(\K, \oplus, \otimes, \0, \1)$ be a semiring, and $(\Theta^{(l)})_l$ be annotation functions, associating to each matrix of coefficients $d^{(l)}$ a matrix of semiring elements $\Theta^{(l)}(d)$. In particular, note that $d_{i,j} \mapsto \Theta^{(l)}(d)_{i,j}$ does not need to be a mapping: to identical coefficients can be associated different annotations. In the following examples, we will mostly use element-wise annotations functions of the form $\R\longrightarrow\K$.
+
+We call $\K$-relevance for output neuron $y$ the quantity $R\in\K$ inductively defined by:
 \begin{equation}
     R^{(L)}_i := \begin{cases*}
         \1 & if $i = y$\\
@@ -176,7 +178,7 @@ where the $d_{j,k}^{(l)}$ are some coefficients proportional to the extent to wh
 \end{equation}
 and
 \begin{equation}
-    R^{(l)}_j := \bigoplus_{k}\Theta^{(l)}(d_{j,k}) \otimes R^{(l+1)}_k
+    R^{(l)}_j := \bigoplus_{k}\Theta^{(l)}(d)_{j,k} \otimes R^{(l+1)}_k
     \label{eq:semiring-lrp-rec}
 \end{equation}
 Note that choosing $(\R,+,\times,0,1)$ as a semiring and $\Theta^{(l)}=x\mapsto x$ retrieves classical LRP up to a multiplicative factor of $a_i^{(L)}$ on each layer (which does not appear on the semiring initialization).
@@ -192,10 +194,10 @@ Similarly to the implementation of provenance in databases by tools such as Prov
 \subsection{Results over the MNIST dataset}
 We provide experimental results of the implementation of semiring-based LRP. In the following, we use the same fully-connected network as in \autoref{fig:mnist-lrp}, with layers of sizes $28\times28$, $300$, $100$ and $10$ and trained on the MNIST dataset.
 \subsubsection{Boolean Semiring}
-Boolean relevance can be computed using the boolean semiring $(\B=\{\bot, \top\}, \lor, \land, \bot, \top)$, and a conversion function $\Theta$ of the form:
+Boolean relevance can be computed using the boolean semiring $(\B=\{\bot, \top\}, \lor, \land, \bot, \top)$, and an element-wise annotation function $\Theta$ of the form:
 \begin{equation}
     \begin{aligned}
-        \Theta: \R&\longrightarrow\B\\
+        \Theta: \R&\longrightarrow \B\\
         x&\longmapsto \begin{cases*}
             \top & if $x\geq\theta$\\
             \bot & otherwise
@@ -220,7 +222,7 @@ $\B$-relevance provides a higher level explanation, highlighting large zones of 
 Naturally, information about nuances in the contribution is lost. Intuitively, activated pixels (input neurons with relevance $\top$) are neurons such that there exists a \say{relevant} path from this neuron to the output neuron of the class \texttt{0}. A relevant path is a path in which all edges have a weight higher than the threshold $\theta$. While this condition might seem quite restrictive, note that computation graphs for neural networks are densely connected: there is $784\times300\times100=23\,520\,000$ different paths connecting one input pixel to the output neuron of the class \texttt{0}.
 
 \subsubsection{Counting Semiring}
-The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance by enumerating the number of relevant paths starting from each input pixel. Its conversion function $\Theta$ is mostly identical:
+The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance by enumerating the number of relevant paths starting from each input pixel. Its element-wise annotation function $\Theta$ is mostly identical:
 \begin{equation}
     \begin{aligned}
         \Theta: \R&\longrightarrow\N\\
@@ -245,7 +247,7 @@ The full propagation equation becomes:
 \end{equation}
 
 \subsubsection{Viterbi Semiring}
-The Viterbi semiring $([0, 1], \max, \times, 0, 1)$ replaces the $+$ of the classical real semiring by a $\max$. In a context where neurons can have the same weighted sum of relevance, taking the maximum of the relevance emphasizes the very most important neurons, giving a more contrasted visualization than classical LRP. 
+The Viterbi semiring $([0, 1], \max, \times, 0, 1)$ replaces the $+$ of the classical real semiring by a $\max$. In a context where neurons can have the same weighted sum of relevance, taking the maximum of the relevance emphasizes the most important neurons, giving a more contrasted visualization than classical LRP. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{viterbi.png}
@@ -320,9 +322,10 @@ We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageN
 \begin{figure}[H]
     \centering
     \includegraphics[width=.6\textwidth]{vgg-architecture.png}
-    \caption{Architecture of the VGG-16 network.}
+    \caption{Architecture of the VGG-16 network.\protect\footnotemark}
 \end{figure}
-A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose one conversion function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based conversion functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
+\footnotetext{Figure reproduced from Max Ferguson et al., `Automatic localization of casting defects with convolutional neural networks.' (2017)}
+A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
 
 \subsubsection{Boolean semiring}
 $\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
@@ -406,7 +409,7 @@ The accuracy of modern neural networks often come at the cost of large model siz
 \begin{figure}[H]
     \centering
     \includegraphics[width=.7\textwidth]{pruning-graph-large.png}
-    \caption{Accuracy and loss evolution during network pruning\\ for different neuron selection methods.}
+    \caption{Accuracy and loss evolution during network pruning for different neuron selection methods. Neurons were pruned on the first layer of the same fully-connected network trained on the MNIST dataset. Accuracy and loss are computed over the MNIST test set.}
     \label{fig:pruning-graph}
 \end{figure}
 
@@ -417,11 +420,11 @@ Three curve clusters can be identified: boolean and counting LRP perform much wo
 \subsection{Comparison to image perturbation}
 In parallel to LRP, other methods aiming at providing a visual explanation of the decision of a classifier have emerged, such as \cite{inverting,visualizing-cnn}. An interesting approach, introduced in \cite{fong2017interpretable}, identifies pixels relevant to the classification by adding perturbations to the image. Intuitively, a pixel is relevant if the classification of the image changes when this pixel is modified. 
 
-In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbated. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
+In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{attacks.png}
-    \caption{Accuracy sensibility to perturbation by spatial region of the image.}
+    \caption{Accuracy sensibility to perturbation by spatial region of the image. Darker zones show drops of accuracies when this zone of the image is perturbed.}
     \label{fig:mnist-attack}
 \end{figure}
 This results in a visualization of the critical zones of the image, qualitatively different from LRP. While LRP highlights the zones containing the classified object, perturbation methods mostly selects zones outside of the object, where change can lead to confusion with another class: for instance, the zone above the \texttt{4} is strongly highlighted since perburbation in this area might trick the model into believing that the digit is a \texttt{9} instead.
@@ -449,7 +452,7 @@ Results of \autoref{fig:attack-graphs} show that all LRP distributions outperfor
 \section{Conclusion}
 We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
 
-We implemented Semiring-based LRP for PyTorch models containing Linear, Convolutional, Spatial pooling, and Activation layers; the user can simply implement its own semiring by overloading the addition, multiplication, $\0$ and $\1$ elements and conversion function. Experimentally, boolean and counting semiring provide scalable explanations that qualitatively differ from classical LRP.
+We implemented Semiring-based LRP for PyTorch models containing Linear, Convolutional, Spatial pooling, and Activation layers; the user can simply implement its own semiring by overloading the addition, multiplication, $\0$ and $\1$ elements and annotation function. Experimentally, boolean and counting semiring provide scalable explanations that qualitatively differ from classical LRP.
 
 Finally, we explored three examples of applications of semiring-based LRP: mask computation, network pruning, and vulnerable pixels detection. We believe that semiring-based LRP has the potential to provide more than an explanation for a single execution, and those applications tend to show that combining LRP results over multiple executions produces meaningful metrics for the overall relevance of neurons in the network. 
 
