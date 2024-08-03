@@ -1,6 +1,6 @@
-\documentclass{../cs-classes/cs-classes}
+\documentclass[twocolumn]{../cs-classes/cs-classes}
 
-\title{Extending Layer-wise Relevance Propagation using Semiring Annotations}
+\title{Extending Layer-wise Relevance Propagation\\ using Semiring Annotations}
 \author{
     \textbf{Antoine Groudiev}\\L3, DI, ENS
 }
@@ -14,9 +14,15 @@
 \newcommand*{\0}{\digitsbb{0}}
 
 \begin{document}
-\begin{abstract}
-    Recently, neural networks allowed computers to solve numerous problems from diverse machine learning fields, such as natural language processsing and computer vision. Compared to traditional algorithms, machine learning models have proven both more successful and more difficult to interpret. Neural networks are considered as black boxes unable to easily explain themselves, that is justifying the reasons that led them to make a prediction. Layer-wise Relevance Propagation (LRP) is a technique that has been introduced to provide explanability by identifying the input features relevant to the output choice. In parallel, research in the databases field developed annotations techniques to compute provenance for queries. In this paper, we extend LRP propagation rules to semiring-based provenance annotations of the network, and implement semiring-based propagation rules for computer vision models of different scales.
-\end{abstract}
+\twocolumn[
+  \begin{@twocolumnfalse}
+    \maketitle
+    \begin{abstract}
+        Recently, neural networks allowed computers to solve numerous problems from diverse machine learning fields, such as natural language processsing and computer vision. Compared to traditional algorithms, machine learning models have proven both more successful and more difficult to interpret. Neural networks are considered as black boxes unable to easily explain themselves, that is justifying the reasons that led them to make a prediction. Layer-wise Relevance Propagation (LRP) is a technique that has been introduced to provide explanability by identifying the input features relevant to the output choice. In parallel, research in the databases field developed annotations techniques to compute provenance for queries. In this paper, we extend LRP propagation rules to semiring-based provenance annotations of the network, and implement semiring-based propagation rules for computer vision models of different scales.
+    \end{abstract}
+    \vspace*{1cm}
+  \end{@twocolumnfalse}
+]
 
 \section{Introduction}
 \subsection{Problem statement}
@@ -29,7 +35,7 @@ Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{LRP.png}
+    \includegraphics[width=.8\linewidth]{LRP.png}
     \caption{Illustration of LRP. The leftmost part corresponds to the forward pass, while relevance propagation is visualized in the rightmost part.\protect\footnotemark}
 \end{figure}
 \footnotetext{Figure adapted from \href{https://www.hhi.fraunhofer.de/en/departments/ai/technologies-and-solutions/layer-wise-relevance-propagation.html}{\say{Layer-wise Relevance Propagation}} -- Fraunhofer Institute for Telecommunications}
@@ -43,7 +49,7 @@ Let $L$ be the number of layers of the network, including the input and output l
 \end{equation*}
 and we define $w^{(l)}_{0, k}$ to be the bias of the $k$-th neuron of the $(l+1)$-th layer. The forward propagation rule of a deep rectifier network is therefore:
 \begin{equation}
-    \forall l\in\iset{1}{L-1}, \forall k, \quad a^{(l+1)}_k = \ReLU\left(\sum_{j}a^{(l)}_j w^{(l)}_{j, k}\right) = \max\left(0, \sum_{j}a^{(l)}_j w^{(l)}_{j, k}\right)
+    \forall l, \forall k, \quad a^{(l+1)}_k = \ReLU\left(\sum_{j}a^{(l)}_j w^{(l)}_{j, k}\right)
 \end{equation}
 
 We denote by $R^{(l)}_j$ the relevance of the $j$-th neuron of the $l$-th layer. We assume that the output layer represents a one-hot encoding, that is that the belonging of the input to the $i$-th class is represented by an output vector is of the form $(0, \dots, a^{(L)}_i, \dots, 0)$, where the only non-null coefficient is in the $i$-th position. Finally, we denote by $y$ the label of a classified input. To the label $y=i$ is associated the output vector $(0, \dots, a^{(L)}_i, \dots, 0)$.
@@ -100,7 +106,7 @@ Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods t
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{mnist-lrp.png}
+    \includegraphics[width=.9\linewidth]{mnist-lrp.png}
     \caption{Input image and pixel-wise explanation of the output neuron \texttt{0}}
     \label{fig:mnist-lrp}
 \end{figure}
@@ -108,14 +114,14 @@ Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods t
 \autoref{fig:castle-lrp} provides a visualization for a more complex example, an execution of the VGG-16 network over a $224\times224$ image. 
 \begin{figure}[H]
     \centering
-    \begin{minipage}[c]{.49\textwidth}
+    \begin{minipage}[c]{.49\linewidth}
         \centering
-        \includegraphics[width=.65\textwidth]{castle.jpg}
+        \includegraphics[width=.8\linewidth]{castle.jpg}
     \end{minipage}
-    \hspace*{-2.5cm}
-    \begin{minipage}[c]{.49\textwidth}
+    %\hspace*{-2.5cm}
+    \begin{minipage}[c]{.49\linewidth}
         \centering
-        \includegraphics[width=.65\textwidth]{castle-lrp.png}
+        \includegraphics[width=.8\linewidth]{castle-lrp.png}
     \end{minipage}
     \caption{Input image and relevance for the class "\texttt{castle}" of the VGG-16 network}
     \label{fig:castle-lrp}
@@ -208,7 +214,7 @@ where $\theta$ is a hyperparameter called the threshold. A higher threshold redu
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{boolean.png}
+    \includegraphics[width=.9\linewidth]{boolean.png}
     \caption{Input image and $\B$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$}
 \end{figure}
 
@@ -236,7 +242,7 @@ but operations $+$ and $\times$ bring more expressivity to the framework, bringi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{counting.png}
+    \includegraphics[width=.9\linewidth]{counting.png}
     \caption{Input image and $\N$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$.\\ Highest relevance is 2098.}
 \end{figure}
 
@@ -250,7 +256,7 @@ The full propagation equation becomes:
 The Viterbi semiring $([0, 1], \max, \times, 0, 1)$ replaces the $+$ of the classical real semiring by a $\max$. In a context where neurons can have the same weighted sum of relevance, taking the maximum of the relevance emphasizes the most important neurons, giving a more contrasted visualization than classical LRP. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{viterbi.png}
+    \includegraphics[width=.9\linewidth]{viterbi.png}
     \caption{Input image and $[0, 1]$-relevance for the output neuron \texttt{0}}
 \end{figure}
 To ensure that values belong to the $[0, 1]$ set, the following rule is used:
@@ -266,19 +272,19 @@ We explore multiple applications of semiring-based LRP, going beyond the scope o
 \subsection{Image mask computation}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{boolean-mask.png}
+    \includegraphics[width=.5\linewidth]{boolean-mask.png}
     \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{dmnist-boolean-mask.png}
+    \includegraphics[width=.5\linewidth]{dmnist-boolean-mask.png}
     \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{dmnist-all-classes.png}
+    \includegraphics[width=.5\linewidth]{dmnist-all-classes.png}
     \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
 \end{figure}
 
@@ -286,19 +292,19 @@ We explore multiple applications of semiring-based LRP, going beyond the scope o
 
 % \begin{figure}[H]
 %     \centering
-%     \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
+%     \includegraphics[width=.5\linewidth]{boolean-mask-all.png}
 %     \caption{All classes mask for $\B$-relevance}
 % \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{counting-mask.png}
+    \includegraphics[width=.5\linewidth]{counting-mask.png}
     \caption{Class-wise mask for $\N$-relevance of the class \texttt{0}}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\textwidth]{counting-mask-all.png}
+    \includegraphics[width=.5\linewidth]{counting-mask-all.png}
     \caption{All classes mask for $\N$-relevance}
 \end{figure}
 
@@ -306,7 +312,7 @@ We explore multiple applications of semiring-based LRP, going beyond the scope o
 The accuracy of modern neural networks often come at the cost of large model size, increasing both storage, computational cost and inference time. To reduce the size of such models, an efficient technique called \emph{network pruning} has been studied \cite{pruning-survey,new-pruning}, in which neurons are removed from the network. A simple approach to selecting which neurons to prune is to select those with the smallest $\ell_1$ or $\ell_2$ norm: that is, those whose associated column in the weight matrix has the smallest norm. While this selection method yields good results, we show that removing neurons with the smallest average relevance -- in the sense of LRP -- allows the network to perform better.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.7\textwidth]{pruning-graph-large.png}
+    \includegraphics[width=.9\linewidth]{pruning-graph-large.png}
     \caption{Accuracy and loss evolution during network pruning for different neuron selection methods. Neurons were pruned on the first layer of the same fully-connected network trained on the MNIST dataset. Accuracy and loss are computed over the MNIST test set.}
     \label{fig:pruning-graph}
 \end{figure}
@@ -321,7 +327,7 @@ In parallel to LRP, other methods aiming at providing a visual explanation of th
 In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{attacks.png}
+    \includegraphics[width=.9\linewidth]{attacks.png}
     \caption{Accuracy sensibility to perturbation by spatial region of the image. Darker zones show drops of accuracies when this zone of the image is perturbed.}
     \label{fig:mnist-attack}
 \end{figure}
@@ -334,13 +340,13 @@ To evaluate to what extent LRP highlights pixels vulnerable to perturbations, we
 In other terms, the probability distribution is the softmax of the opposite of the relevance; the higher the relevance, the lower the probability that the pixel is affected by a perburbation.
 \begin{figure}[H]
     \centering
-    \begin{minipage}[c]{.49\textwidth}
+    \begin{minipage}[c]{.49\linewidth}
         \centering
-        \includegraphics[width=\textwidth]{attack-graph-1.png}
+        \includegraphics[width=\linewidth]{attack-graph-1.png}
     \end{minipage}
-    \begin{minipage}[c]{.49\textwidth}
+    \begin{minipage}[c]{.49\linewidth}
         \centering
-        \includegraphics[width=\textwidth]{attack-graph-2.png}
+        \includegraphics[width=\linewidth]{attack-graph-2.png}
     \end{minipage}
     \caption{Accuracy drop for multiple pixels attacks strategies.}
     \label{fig:attack-graphs}
@@ -408,12 +414,12 @@ At test time, normalization layers act as a linear operatioin, and can therefore
 
 \subsection{Results for the VGG-16 network}
 We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
-\begin{figure}[H]
+\begin{figure*}
     \centering
     \input{vgg-architecture.tex}
     \caption{Architecture of the VGG-16 network.}
     %\caption{Architecture of the VGG-16 network.\protect\footnotemark}
-\end{figure}
+\end{figure*}
 %\footnotetext{Figure reproduced from Max Ferguson et al., `Automatic localization of casting defects with convolutional neural networks.' (2017)}
 A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
 
@@ -421,7 +427,7 @@ A necessary ajustement compared to the simpler fully-connected neural networks i
 $\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\textwidth]{vgg-boolean.png}
+    \includegraphics[width=\linewidth]{vgg-boolean.png}
     \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
     \label{fig:vgg-boolean}
 \end{figure}
@@ -431,7 +437,7 @@ While classical LRP provides a more precise explanation by focusing on the conto
 Counting semiring produces an explanation qualitatively similar to classical LRP. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.65\textwidth]{vgg-counting.png}
+    \includegraphics[width=.9\linewidth]{vgg-counting.png}
     \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated\\ using a sum, like for composite LRP.}
 \end{figure}
 
@@ -444,7 +450,7 @@ Equations such as \ref{eq:boolean-lrp} and \ref{eq:counting-lrp} introduce thres
 We propose threshold values, used in \autoref{fig:vgg-boolean}, that offer a balanced explanation. Modifiying these values by small amounts allow the user to choose between a more precise or more general explanation.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.6\textwidth]{threshold-graph.png}
+    \includegraphics[width=\linewidth]{threshold-graph.png}
     \caption{Variation of the threshold of convolutional layers used to compute $\B$-relevance}
 \end{figure}
 
