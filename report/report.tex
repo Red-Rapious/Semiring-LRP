@@ -35,7 +35,7 @@ Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\linewidth]{LRP.png}
+    \includegraphics[width=\linewidth]{LRP.png}
     \caption{Illustration of LRP. The leftmost part corresponds to the forward pass, while relevance propagation is visualized in the rightmost part.\protect\footnotemark}
 \end{figure}
 \footnotetext{Figure adapted from \href{https://www.hhi.fraunhofer.de/en/departments/ai/technologies-and-solutions/layer-wise-relevance-propagation.html}{\say{Layer-wise Relevance Propagation}} -- Fraunhofer Institute for Telecommunications}
@@ -99,6 +99,8 @@ Notably, the input layer must be handled using a different rule, since it does n
 \end{equation}
 where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_i$ and $h_i$ respectively define the theoretical minimum and maximum values of the inputs $x_i$. For instance, we might have $l_i=0$ and $h_i=255$ for pixels over 8 bits.
 
+Best results are obtained using \emph{Composite LRP} \cite{montavon-lrp}, a method in which a specific rule is used for each layer: deepest layers use LRP-0, intermediate layers use LRP-$\epsilon$, and lower layers LRP-$\gamma$.
+
 \subsubsection{LRP results and pertinence}
 Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods that we will introduce later on, were experimentaly tested on models trained over two datasets: fully-connected networks trained on the MNIST handwritten digits dataset \cite{mnist-dataset}, and deep convolutional networks pre-trained on the ImageNet visual database such as VGG-16 \cite{vgg}.
 
@@ -116,12 +118,12 @@ Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods t
     \centering
     \begin{minipage}[c]{.49\linewidth}
         \centering
-        \includegraphics[width=.8\linewidth]{castle.jpg}
+        \includegraphics[width=\linewidth]{castle.jpg}
     \end{minipage}
     %\hspace*{-2.5cm}
     \begin{minipage}[c]{.49\linewidth}
         \centering
-        \includegraphics[width=.8\linewidth]{castle-lrp.png}
+        \includegraphics[width=\linewidth]{castle-lrp.png}
     \end{minipage}
     \caption{Input image and relevance for the class "\texttt{castle}" of the VGG-16 network}
     \label{fig:castle-lrp}
@@ -243,7 +245,7 @@ but operations $+$ and $\times$ bring more expressivity to the framework, bringi
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\linewidth]{counting.png}
-    \caption{Input image and $\N$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$.\\ Highest relevance is 2098.}
+    \caption{Input image and $\N$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$. Highest relevance is 2098.}
 \end{figure}
 
 The full propagation equation becomes:
@@ -270,25 +272,35 @@ In practice, a small amount such as \texttt{1e-9} can be added to the denominato
 We explore multiple applications of semiring-based LRP, going beyond the scope of simple execution-wise explanations. While LRP was intended as a tool to interpret a single execution of the network, we believe that averaging relevance scores of neurons over multiple executions can produce a meaningful metric of the \say{importance} of each neuron. Through three applications, we put forwards both qualitative and quantitative arguments supporting this view.
 
 \subsection{Image mask computation}
+The simplest setup consists in computing a \say{mask} by combining mulitple relevance results. For instance, \autoref{fig:boolean-mask} shows how the $\B$-relevances of multiple executions from the same class can be combined using boolean operators to build image masks. These masks delimitate spatial regions of the image that most likely contain meaningful features used to classify images as the class \texttt{0}. For instance, the most useful input pixels for the classification as \texttt{0} are spatially located in a ring around the center of the image.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\linewidth]{boolean-mask.png}
+    \includegraphics[width=.9\linewidth]{boolean-mask.png}
     \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+    \label{fig:boolean-mask}
 \end{figure}
+The same method also provides information on the internal neurons of the network that were used in the final classification. We believe that this technique can be used in the identification of \emph{circuits} inside the neural network \cite{circuits}, that is computational subgraphs of the network mostly responsible for one specific behavior of the model.
 
+The spatial localisation of relevant pixels for a certain class do not scale to more complex models, where the dataset is not centered: if a certain object can be detected anywhere in the input image, the final mask will capture the entire image. Nevertheless, deeper neurons of networks are believed to be mostly spatially invariant, and mask computation can therefore be applied to the deepest layers.
+
+To demonstrate the potential of mask computation using LRP, we built a toy example based on MNIST. We generated a new dataset in which images are made of two MNIST digits, one above the other (see \autoref{fig:dmnist-boolean-mask}). The label for each image is the uppermost digit; the lower digit has no influence over the label and is used simply to confuse the classifier. We expect the relevance of the lower part of the image to be null.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\linewidth]{dmnist-boolean-mask.png}
-    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+    \includegraphics[width=.9\linewidth]{dmnist-all-classes.png}
+    \caption{Mask of the relevant part of the images, obtained by applying $\land$ and $\lor$ pixel-wise to the results of boolean LRP.}
+    \label{fig:dmnist-all-classe}
 \end{figure}
+\autoref{fig:dmnist-all-classe} computes  a mask of the relevant part of the images by combining multiple $\B$-LRP results. Without prior knowledge of the connection between the label and the digits in the images, we can see that the model is learning to detect the upper digit in the image, and discards the lower digit.
 
+The same procedure can be applied only for one class at a time, like in \autoref{fig:dmnist-boolean-mask}.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.5\linewidth]{dmnist-all-classes.png}
-    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+    \includegraphics[width=.9\linewidth]{dmnist-boolean-mask.png}
+    \caption{Computation of the image mask, only for images classified as \texttt{0}.}
+    \label{fig:dmnist-boolean-mask}
 \end{figure}
 
-% TODO: add double MNIST
+
 
 % \begin{figure}[H]
 %     \centering
@@ -296,17 +308,17 @@ We explore multiple applications of semiring-based LRP, going beyond the scope o
 %     \caption{All classes mask for $\B$-relevance}
 % \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\linewidth]{counting-mask.png}
-    \caption{Class-wise mask for $\N$-relevance of the class \texttt{0}}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=.5\linewidth]{counting-mask.png}
+%     \caption{Class-wise mask for $\N$-relevance of the class \texttt{0}}
+% \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\linewidth]{counting-mask-all.png}
-    \caption{All classes mask for $\N$-relevance}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=.5\linewidth]{counting-mask-all.png}
+%     \caption{All classes mask for $\N$-relevance}
+% \end{figure}
 
 \subsection{Network pruning using LRP ranking}
 The accuracy of modern neural networks often come at the cost of large model size, increasing both storage, computational cost and inference time. To reduce the size of such models, an efficient technique called \emph{network pruning} has been studied \cite{pruning-survey,new-pruning}, in which neurons are removed from the network. A simple approach to selecting which neurons to prune is to select those with the smallest $\ell_1$ or $\ell_2$ norm: that is, those whose associated column in the weight matrix has the smallest norm. While this selection method yields good results, we show that removing neurons with the smallest average relevance -- in the sense of LRP -- allows the network to perform better.
@@ -438,7 +450,7 @@ Counting semiring produces an explanation qualitatively similar to classical LRP
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\linewidth]{vgg-counting.png}
-    \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated\\ using a sum, like for composite LRP.}
+    \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated using a sum, like for composite LRP.}
 \end{figure}
 
 \subsubsection{Viterbi semiring}
