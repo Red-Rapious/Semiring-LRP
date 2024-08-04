@@ -30,6 +30,8 @@ Deep neural networks have proven successful for solving with high accuracy machi
 
 However, this versatility comes at the cost of poor interpretability: a neural network simply represents a function from one high-dimensional space to another, but provides no justification nor explanation for a given execution. If metrics such as the accuracy over a testing set provide confidence in the fact that the model is able to correctly classify inputs similar to the training set, no guarantee is given that the model generalizes well. Real-world examples show that networks can overfit the input data, or even take shortcuts instead of learning the intended solution \cite{shortcuts}. For the user to have confidence in its predictions, a neural network should therefore be able to highlight the patterns in the input data that it actually learned.
 
+\subsection{State-of-the-Art review}
+
 \subsection{Layer-wise Relevance Propagation}
 Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a technique to explain an execution of a neural network. LRP is a procedure propagating the output of the function backward in the network, using diverse rules to compute the \emph{relevance} of a neuron depending on the relevances of the neurons of the upstream layer. LRP introduces the notion of \emph{relevance score} for a neuron, intuitively quantifying the contribution of this neuron to the classification of final classification. A high relevance score indicates that the neuron led to the activation of the considered output; a negative relevance score represents neurons that increased the activation of another output neuron instead of the one considered.
 
@@ -286,7 +288,7 @@ The spatial localisation of relevant pixels for a certain class do not scale to 
 To demonstrate the potential of mask computation using LRP, we built a toy example based on MNIST. We generated a new dataset in which images are made of two MNIST digits, one above the other (see \autoref{fig:dmnist-boolean-mask}). The label for each image is the uppermost digit; the lower digit has no influence over the label and is used simply to confuse the classifier. We expect the relevance of the lower part of the image to be null.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\linewidth]{dmnist-all-classes.png}
+    \includegraphics[width=.85\linewidth]{dmnist-all-classes.png}
     \caption{Mask of the relevant part of the images, obtained by applying $\land$ and $\lor$ pixel-wise to the results of boolean LRP.}
     \label{fig:dmnist-all-classe}
 \end{figure}
@@ -339,7 +341,7 @@ In parallel to LRP, other methods aiming at providing a visual explanation of th
 In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\linewidth]{attacks.png}
+    \includegraphics[width=\linewidth]{attacks.png}
     \caption{Accuracy sensibility to perturbation by spatial region of the image. Darker zones show drops of accuracies when this zone of the image is perturbed.}
     \label{fig:mnist-attack}
 \end{figure}
@@ -352,14 +354,8 @@ To evaluate to what extent LRP highlights pixels vulnerable to perturbations, we
 In other terms, the probability distribution is the softmax of the opposite of the relevance; the higher the relevance, the lower the probability that the pixel is affected by a perburbation.
 \begin{figure}[H]
     \centering
-    \begin{minipage}[c]{.49\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{attack-graph-1.png}
-    \end{minipage}
-    \begin{minipage}[c]{.49\linewidth}
-        \centering
-        \includegraphics[width=\linewidth]{attack-graph-2.png}
-    \end{minipage}
+    \includegraphics[width=\linewidth]{attack-graph-1.png}
+    \includegraphics[width=\linewidth]{attack-graph-2.png}
     \caption{Accuracy drop for multiple pixels attacks strategies.}
     \label{fig:attack-graphs}
 \end{figure}
@@ -424,6 +420,12 @@ where $K$ is the kernel size.
 \paragraph*{Batch Normalization Layers}
 At test time, normalization layers act as a linear operatioin, and can therefore be fused with the previous linear layer. LRP and semiring-based LRP can then be applied directly to the fused layer.
 
+\begin{figure*}
+    \centering
+    \includegraphics[width=.8\linewidth]{vgg-boolean.png}
+    \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
+    \label{fig:vgg-boolean}
+\end{figure*}
 \subsection{Results for the VGG-16 network}
 We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
 \begin{figure*}
@@ -437,23 +439,21 @@ A necessary ajustement compared to the simpler fully-connected neural networks i
 
 \subsubsection{Boolean semiring}
 $\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{vgg-boolean.png}
-    \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
-    \label{fig:vgg-boolean}
-\end{figure}
+
 While classical LRP provides a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center.
 
 \subsubsection{Counting semiring}
 Counting semiring produces an explanation qualitatively similar to classical LRP. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\linewidth]{vgg-counting.png}
+    \includegraphics[width=\linewidth]{vgg-counting.png}
     \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated using a sum, like for composite LRP.}
 \end{figure}
 
 \subsubsection{Viterbi semiring}
+The Viterbi semiring relevance appears to scale poorly to deep convolutional neural networks. Comparatively to counting or boolean semirings, it does not use thresholds to limit the spread of relevance during convolutions, which leads to the uniformization of relevance throughout the image.
+
+% TODO: insert figure
 
 \subsection{Thresholds choice}
 \label{seq:thresholds-choice}
