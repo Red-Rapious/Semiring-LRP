@@ -13,6 +13,8 @@
 \newcommand*{\1}{\digitsbb{1}}
 \newcommand*{\0}{\digitsbb{0}}
 
+\usemintedstyle{colorful}
+
 \begin{document}
 \twocolumn[
   \begin{@twocolumnfalse}
@@ -31,6 +33,7 @@ Deep neural networks have proven successful for solving with high accuracy machi
 However, this versatility comes at the cost of poor interpretability: a neural network simply represents a function from one high-dimensional space to another, but provides no justification nor explanation for a given execution. If metrics such as the accuracy over a testing set provide confidence in the fact that the model is able to correctly classify inputs similar to the training set, no guarantee is given that the model generalizes well. Real-world examples show that networks can overfit the input data, or even take shortcuts instead of learning the intended solution \cite{shortcuts}. For the user to have confidence in its predictions, a neural network should therefore be able to highlight the patterns in the input data that it actually learned.
 
 \subsection{State-of-the-Art review}
+Explainable Artifical Intelligence techniques can be classified according to multiple criteras \cite{xai-survey}. Some methods consider the model as a black box and do not access the internal structure of the model \cite{fong2017interpretable}, while others take advantage of the internal states and weights of a network \cite{bach-2015,gradcam,circuits,inverting}. A distinction is also made between local and global explanations: a \emph{local} result explains a single execution of the model, while a \emph{global} result tries to understand the model for any possible execution \cite{visualizing-cnn}. Finally, \emph{self-explaining} approaches use only data made available by the model computation during prediction, while \emph{post-hoc} approaches perform more operations after the initial inference.
 
 \subsection{Layer-wise Relevance Propagation}
 Layer-wise Relevance Propagation (LRP) \cite{bach-2015} has been introduced as a technique to explain an execution of a neural network. LRP is a procedure propagating the output of the function backward in the network, using diverse rules to compute the \emph{relevance} of a neuron depending on the relevances of the neurons of the upstream layer. LRP introduces the notion of \emph{relevance score} for a neuron, intuitively quantifying the contribution of this neuron to the classification of final classification. A high relevance score indicates that the neuron led to the activation of the considered output; a negative relevance score represents neurons that increased the activation of another output neuron instead of the one considered.
@@ -356,12 +359,18 @@ In other terms, the probability distribution is the softmax of the opposite of t
     \centering
     \includegraphics[width=\linewidth]{attack-graph-1.png}
     \includegraphics[width=\linewidth]{attack-graph-2.png}
-    \caption{Accuracy drop for multiple pixels attacks strategies.}
+    \caption{Accuracy drop for multiple pixels attacks strategies. Lower graph represents the difference to the uniform baseline.}
     \label{fig:attack-graphs}
 \end{figure}
 Results of \autoref{fig:attack-graphs} show that all LRP distributions outperform the uniform baseline. While LRP does not directly highlight vulnerable pixels, pixels with less relevance are most likely to be resilient to perturbations.
 
 
+\begin{figure*}
+    \centering
+    \input{vgg-architecture.tex}
+    \caption{Architecture of the VGG-16 network.}
+    \label{fig:vgg-architecture}
+\end{figure*}
 \section{Handling Convolutional Neural Networks}
 If LRP rules are well-suited for simple, feedforward neural networks, most use cases of explanations occur with larger models, namely deep convolutional neural networks (CNNs). We explain how previously introduced rules can be adapted to CNNs, and provide visualization examples for the VGG-16 model.
 
@@ -379,6 +388,7 @@ If applying directly the formula to convolutional layers is theoretically possib
 Classical LRP rules can be easily and efficiently implemented. A general rule encapsulating LRP-0/$\epsilon$/$\gamma$ can be written as:
 \begin{equation}
     R_j^{(l)} = \sum_k\frac{a_j\cdot\rho(w_{j,k})}{\epsilon+\sum_{j'}a_{j'}\cdot{\rho(w_{j',k})}} \cdot R_k^{(l+1)}
+    \label{eq:general-lrp-full}
 \end{equation}
 where $a=a^{(l)}$, $w=w^{(l)}$. Four steps, described in \cite{montavon-lrp}, allow for an efficient and effortless computation of relevance:
 \begin{equation}
@@ -427,14 +437,8 @@ At test time, normalization layers act as a linear operatioin, and can therefore
     \label{fig:vgg-boolean}
 \end{figure*}
 \subsection{Results for the VGG-16 network}
-We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
-\begin{figure*}
-    \centering
-    \input{vgg-architecture.tex}
-    \caption{Architecture of the VGG-16 network.}
-    %\caption{Architecture of the VGG-16 network.\protect\footnotemark}
-\end{figure*}
-%\footnotetext{Figure reproduced from Max Ferguson et al., `Automatic localization of casting defects with convolutional neural networks.' (2017)}
+We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture (see \autoref{fig:vgg-architecture}) makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
+
 A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
 
 \subsubsection{Boolean semiring}
@@ -460,18 +464,56 @@ The Viterbi semiring relevance appears to scale poorly to deep convolutional neu
 Equations such as \ref{eq:boolean-lrp} and \ref{eq:counting-lrp} introduce thresholds which must be ajusted to provide meaningful explanation. Selecting such parameters optimally requires a proper definition of explanation quality, which is a separate research domain \cite{samek2016evaluating}. Nevertheless, only some ranges of threshold values guarantee a final result that is humanly interpretable. Threshold values that are too high result in visualizations containing little to no information; relevance is \say{lost} in the deepest layers and only a few input neurons are marked as relevant. Threshold values that are too low result in over-saturated visualizations; for instance, boolean relevance selects most neurons as relevant, loosing meaningful information in the amount of activated pixels.
 
 We propose threshold values, used in \autoref{fig:vgg-boolean}, that offer a balanced explanation. Modifiying these values by small amounts allow the user to choose between a more precise or more general explanation.
+While those parameters were chosen manually, they appear to be correlated to parameters of the convolutional layers. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{threshold-graph.png}
-    \caption{Variation of the threshold of convolutional layers used to compute $\B$-relevance}
+    \includegraphics[width=\linewidth]{threshold-kernel-comparison.png}
+    \caption{Manually-chosen thresholds of convolutional layers used to compute $\B$-relevance, and kernel size of the convolutional layer.}
 \end{figure}
-
-While those parameters were handpicked, they appear to be correlated to parameters of the layers.
-
-% TODO
+The general variation of thresholds follows the one of the kernel size of the layer: very low between the 37th and 31st layers, peaking at the 28th, and maintaining medium values between the 24th and first layers. The correlation between those two characteristics suggests a general rule to pick the thresholds, the detailled values of which are left to the user to pick its prefered explanation.
 
 \subsection{Notes on implementation}
+Finally, we provide some details on the implementation work associated with the previous results. All previous experimental results are implemented in Python, notably using the \href{https://pytorch.org}{\texttt{PyTorch}} and \href{https://numpy.org}{\texttt{NumPy}} modules. The integrality of the source code can be found at \href{https://github.com/Red-Rapious/Semiring-LRP}{\texttt{https://github.com/Red-Rapious/Semiring-LRP}}; LRP implementation is inspired by the code\footnote{\href{https://heatmapping.org/tutorial}{\texttt{https://heatmapping.org/tutorial}}} from the LRP review paper \cite{montavon-lrp}.
 
+A straighforward approach to implementing Semiring LRP into existing models is to define a custom \texttt{Semiring} class providing the different customizable elements:
+\begin{minted}{python}
+class Semiring:
+    def __add__(self, b):
+        return ...
+
+    def __mul__(self, b):
+        return ...
+
+    def zero():
+        return ...
+
+    def one():
+        return ...
+
+    def annotate(layer, d):
+        return ...
+\end{minted}
+Note that the methods \mintinline{python}{__add__} and \mintinline{python}{__mul__} overload the operations $+$ and $\times$, and allow to directly write expressions such as \mintinline{python}{a + b} where \mintinline{python}{a} and \mintinline{python}{b} are elements of the class \mintinline{ocaml}{Semiring}.
+
+LRP initialization can be written using the \mintinline{python}{zero} and \mintinline{python}{one} class methods. One propagation step of the form \autoref{eq:general-lrp-full} can be computed using:
+\begin{minted}[mathescape=true]{python}
+# Apply $\rho$ to the weigts and biases
+w = rho(W[l], l)
+b = rho(B[l], l)
+
+# Compute the denominator
+# incr adds $\epsilon$ to the sum
+z = incr(A[l].dot(w)+b, l)
+
+# Compute each coefficient $d_{j,k}$
+d = (A[l] * w.T).T/z[] 
+
+# Replace floats by their annotations
+d = Semiring.annotate(d)
+
+# Compute the sum $\sum_k$
+R[l] = d @ R[l+1]
+\end{minted}
 
 \section{Conclusion}
 We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
