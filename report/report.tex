@@ -224,7 +224,7 @@ Similarly to the implementation of provenance in databases by tools such as Prov
 We provide experimental results of the implementation of semiring-based LRP. In the following, we use the same fully-connected network as in \autoref{fig:mnist-lrp}, with layers of sizes $28\times28$, $300$, $100$ and $10$ and trained on the MNIST dataset.
 \subsubsection{Boolean Semiring}
 Boolean relevance can be computed using the boolean semiring $(\B=\{\bot, \top\}, \lor, \land, \bot, \top)$, and an element-wise annotation function $\Theta$ of the form:
-\begin{equation}
+\begin{equation*}
     \begin{aligned}
         \Theta: \R&\longrightarrow \B\\
         x&\longmapsto \begin{cases*}
@@ -232,7 +232,7 @@ Boolean relevance can be computed using the boolean semiring $(\B=\{\bot, \top\}
             \bot & otherwise
         \end{cases*}
     \end{aligned}
-\end{equation}
+\end{equation*}
 where $\theta$ is a hyperparameter called the threshold. A higher threshold reduces the number of $\top$ coefficients, ultimately reducing the number of input neurons having a relevance equal to $\top$. Choosing $\theta=10^{-9}$ filters out null and negative contributions to the output while maintaining a sufficient amount of activated inputs for visualization.
 
 \begin{figure}[H]
@@ -253,7 +253,7 @@ Naturally, information about nuances in the contribution is lost. Intuitively, a
 
 \subsubsection{Counting Semiring}
 The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance by enumerating the number of relevant paths starting from each input pixel. Its element-wise annotation function $\Theta$ is mostly identical:
-\begin{equation}
+\begin{equation*}
     \begin{aligned}
         \Theta: \R&\longrightarrow\N\\
         x&\longmapsto \begin{cases*}
@@ -261,7 +261,7 @@ The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance 
             0 & otherwise
         \end{cases*}
     \end{aligned}
-\end{equation}
+\end{equation*}
 but operations $+$ and $\times$ bring more expressivity to the framework, bringing more nuance in the highlighted zones.
 
 \begin{figure}[H]
@@ -419,9 +419,10 @@ where $a=a^{(l)}$, $w=w^{(l)}$. Four steps, described in \cite{montavon-lrp}, al
 \end{equation*}
 
 These steps provide two majors benefits. Firstly, it allows for the costly divisions by $z_k$ to be performed only once per $k$, independently of $j$. Secondly, the third step can be expressed as the computation of a gradient:
-\begin{equation*}
+\begin{equation}
     c_j = \left[\nabla\left(\sum\nolimits_k z_k(a^{(l)})\cdot s_k\right)\right]_j
-\end{equation*}
+    \label{eq:grad-lrp}
+\end{equation}
 where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and where the $s_k$ are treated as constants. This allows for a simple and efficient implementation, since the gradient can be computed using automatic differentiation: the high-level code is not only concise (two lines of PyTorch code), but also effortlessly generalizable  to any layer implementing backward pass, and highly optimized using GPU operations.
 
 \subsubsection{Implementing LRP without automatic differentiation}
@@ -534,12 +535,22 @@ d = Semiring.annotate(d)
 R[l] = d @ R[l+1]
 \end{minted}
 
+A similar implementation for convolutional layers can be implemented by coding the convolution process by hand.
+
+Note that relying on high-level Python code yields poor performance, especially compared to the gradient-based implementation described in \autoref{eq:grad-lrp}. Such a problem could be avoided with a lower-level implementation in the core of \texttt{Pytorch}, similarly to the implementation of ProvSQL \cite{provsql}.
+
 \section{Conclusion}
-We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
+We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. Experimentally, boolean and counting semirings provide scalable explanations that qualitatively differ from classical LRP.
 
-We implemented Semiring-based LRP for PyTorch models containing Linear, Convolutional, Spatial pooling, and Activation layers; the user can simply implement its own semiring by overloading the addition, multiplication, $\0$ and $\1$ elements and annotation function. Experimentally, boolean and counting semiring provide scalable explanations that qualitatively differ from classical LRP.
+The current work shows that the semiring generalization of LRP encapsulates differnt explanations types that go beyond classical LRP. To prove useful to larger-scale applications, it might be interesting for the framework to support diverse new types of layers; we proved that Semiring-LRP could scale to CNNs, but architectures such as RNNs or transformers could benefit from this framework.
 
-Finally, we explored three examples of applications of semiring-based LRP: mask computation, network pruning, and vulnerable pixels detection. We believe that semiring-based LRP has the potential to provide more than an explanation for a single execution, and those applications tend to show that combining LRP results over multiple executions produces meaningful metrics for the overall relevance of neurons in the network. 
+Finally, scalability raises the challenge of performance, as the current high-level implementation would be too slow for most applications. As discussed previously, lower-level \texttt{PyTorch} would most likely result in reasonable performance.
+
+%We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. 
+
+%We implemented Semiring-based LRP for PyTorch models containing Linear, Convolutional, Spatial pooling, and Activation layers; the user can simply implement its own semiring by overloading the addition, multiplication, $\0$ and $\1$ elements and annotation function. Experimentally, boolean and counting semiring provide scalable explanations that qualitatively differ from classical LRP.
+
+%Finally, we explored three examples of applications of semiring-based LRP: mask computation, network pruning, and vulnerable pixels detection. We believe that semiring-based LRP has the potential to provide more than an explanation for a single execution, and those applications tend to show that combining LRP results over multiple executions produces meaningful metrics for the overall relevance of neurons in the network. 
 
 \section*{Acknowldegements}
 I would like to thank Silviu Maniu, my advisor, for his guidance and support throughout this internship. I thank Pierre Senellart for his feedback and advices. Thanks to the LIG and specifically to the members of the SLIDE team. In particular, thanks to Alan Gany, Nassim Bouarour for their help, and thanks to Paul Landrier for his suggestions.
