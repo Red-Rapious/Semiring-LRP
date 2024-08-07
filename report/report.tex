@@ -2,7 +2,7 @@
 
 \title{Extending Layer-wise Relevance Propagation\\ using Semiring Annotations}
 \author{
-    \textbf{Antoine Groudiev}\\L3, DI, ENS
+    \textbf{Antoine Groudiev}\\L3, DI ENS, ENS\\\nolinkurl{antoine.groudiev@ens.psl.eu}
 }
 \date{}
 
@@ -70,6 +70,7 @@ Relevance scores are initialized for the output layer, and are set to the output
 
 The simplest LRP rule is called LRP-0. It propagates the relevance to a neuron of the lower layer proportionnaly to its contribution to each of the neuron of the next layer:
 \begin{equation}
+    \tag{LRP-0}
     R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw^{(l)}_{j, k}}{\sum_{j'}a^{(l)}_{j'}w^{(l)}_{j', k}} R^{(l+1)}_k
 \end{equation}
 The denominator $\sum_{j'}a^{(l)}_{j'}w^{(l)}_{j', k}$ guarantees a conservation property, that is that for any layer $l$:
@@ -98,13 +99,27 @@ This allows to keep the information regarding the total activation of the final 
 
 The application of this simple rule can lead into noisy results that do not scale well. An overview of variations of LRP-0 is provided by \cite{montavon-lrp}; not all rules are suitable for all layers. Complex deep neural networks architectures benefit from enhanced rules such as LRP-$\epsilon$ or LRP-$\gamma$, which provide more stable explanations.
 
+LRP-$\epsilon$ preserves only the most important parts of the explanation and reduces noise:
+\begin{equation*}
+    \tag{LRP-$\epsilon$}
+    R^{(l)}_j = \sum_{k}\frac{a_jw_{j, k}}{\epsilon + \sum_{j'}a_{j'}w_{j', k}} R^{(l+1)}_k
+\end{equation*}
+where we ommited the dependency of $a$ and $w$ on the layer $l$. 
+
+LRP-$\gamma$ favors positive contributions and stabilizes the explanation:
+\begin{equation*}
+    \tag{LRP-$\gamma$}
+    R^{(l)}_j = \sum_{k}\frac{a_j\cdot(w_{j, k} + \gamma w_{j,k}^+)}{\sum_{j'}a_{j'}\cdot(w_{j', k}+ \gamma w_{j',k}^+)} R^{(l+1)}_k
+\end{equation*}
+where $(\cdot)^+=\max(0, \cdot)$.
+
 Notably, the input layer must be handled using a different rule, since it does not receive its input from ReLU activations, but directly from the input data. The $z^\mathcal{B}$ rule is used in \cite{montavon-lrp} to propagate from layer 2 to 1 (input layer):
 \begin{equation}
     R^{(1)}_j = \sum_{k} \frac{x_kw_{j, k} - l_jw^+_{j, k} - h_jw_{j, k}^-}{\sum_{j'}x_kw_{j', k} - l_jw^+_{j', k} - h_jw_{j', k}^-} R^{(2)}_k
 \end{equation}
 where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_i$ and $h_i$ respectively define the theoretical minimum and maximum values of the inputs $x_i$. For instance, we might have $l_i=0$ and $h_i=255$ for pixels over 8 bits.
 
-Best results are obtained using \emph{Composite LRP} \cite{montavon-lrp}, a method in which a specific rule is used for each layer: deepest layers use LRP-0, intermediate layers use LRP-$\epsilon$, and lower layers LRP-$\gamma$.
+Best results are obtained using \emph{Composite LRP} \cite{montavon-lrp}, a method in which a specific rule is used for each layer: deepest layers use LRP-0, intermediate layers use LRP-$\epsilon$, and lower layers LRP-$\gamma$. The fact that some rules are empirically better for different layers can be explained 
 
 \subsubsection{LRP results and pertinence}
 Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods that we will introduce later on, were experimentaly tested on models trained over two datasets: fully-connected networks trained on the MNIST handwritten digits dataset \cite{mnist-dataset}, and deep convolutional networks pre-trained on the ImageNet visual database such as VGG-16 \cite{vgg}.
@@ -130,9 +145,10 @@ Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods t
         \centering
         \includegraphics[width=\linewidth]{castle-lrp.png}
     \end{minipage}
-    \caption{Input image and relevance for the class "\texttt{castle}" of the VGG-16 network}
+    \caption{Input image\protect\footnotemark and relevance for the class "\texttt{castle}" of the VGG-16 network.}
     \label{fig:castle-lrp}
 \end{figure}
+\footnotetext{Image from the overview paper \cite{montavon-lrp}.}
 Note that the castle part of the image is highlighted in red as intended. Furthermore, both the street sign and the street light have strong negative relevance; those two objects correspond to other classes of the ImageNet dataset (\texttt{street sign (919)} and \texttt{traffic light (920)}). Those two elements of the image would have positive relevance for LRP starting from the output neurons \texttt{919} and \texttt{920}.
 
 % TODO: double MNIST?
@@ -191,6 +207,7 @@ We call $\K$-relevance for output neuron $y$ the quantity $R\in\K$ inductively d
 \end{equation}
 and
 \begin{equation}
+    \tag{$\K$-LRP}
     R^{(l)}_j := \bigoplus_{k}\Theta^{(l)}(d)_{j,k} \otimes R^{(l+1)}_k
     \label{eq:semiring-lrp-rec}
 \end{equation}
@@ -201,8 +218,7 @@ Equations \ref{eq:semiring-lrp-init} and \ref{eq:semiring-lrp-rec} can be intuit
 Therefore, a second approach that fits the graph properties of neural networks is to interpret semiring LRP as operations on an annotated circuit, similarly to \cite{senellart2018provenance}. For instance, in the case of the boolean semiring, computing $\B$-relevance consists in taking for each node the logical conjunction of the annotations of its outgoing edges.
 % TODO: add boolean circuit example figure
 
-Similarly to the implementation of provenance in databases by tools such as ProvSQL \cite{provsql}, we implemented a Python module on top of PyTorch\footnote{\href{https://pytorch.org}{\texttt{https://pytorch.org}}}, providing an interface to compute $\K$-relevance for any custom semiring $\K$.
-
+Similarly to the implementation of provenance in databases by tools such as ProvSQL \cite{provsql}, we implemented a Python module on top of PyTorch\footnote{\href{https://pytorch.org}{\texttt{https://pytorch.org}}}, providing an interface to compute $\K$-relevance for any custom semiring $\K$. Details on the implementation are given in \autoref{sec:implementation}
 
 \subsection{Results over the MNIST dataset}
 We provide experimental results of the implementation of semiring-based LRP. In the following, we use the same fully-connected network as in \autoref{fig:mnist-lrp}, with layers of sizes $28\times28$, $300$, $100$ and $10$ and trained on the MNIST dataset.
@@ -227,6 +243,7 @@ where $\theta$ is a hyperparameter called the threshold. A higher threshold redu
 
 The full propagation equation becomes:
 \begin{equation}
+    \tag{$\B$-LRP}
     R^{(l)}_j := \bigvee_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \land R^{(l+1)}_k
     \label{eq:boolean-lrp}
 \end{equation}
@@ -255,6 +272,7 @@ but operations $+$ and $\times$ bring more expressivity to the framework, bringi
 
 The full propagation equation becomes:
 \begin{equation}
+    \tag{$\N$-LRP}
     R^{(l)}_j := \sum_{k}\Theta\left(\frac{a_j\cdot w_{j, k}}{\sum_{j'}a_{j'}\cdot w_{j', k}}\right) \times R^{(l+1)}_k
     \label{eq:counting-lrp}
 \end{equation}
@@ -329,7 +347,7 @@ The same procedure can be applied only for one class at a time, like in \autoref
 The accuracy of modern neural networks often come at the cost of large model size, increasing both storage, computational cost and inference time. To reduce the size of such models, an efficient technique called \emph{network pruning} has been studied \cite{pruning-survey,new-pruning}, in which neurons are removed from the network. A simple approach to selecting which neurons to prune is to select those with the smallest $\ell_1$ or $\ell_2$ norm: that is, those whose associated column in the weight matrix has the smallest norm. While this selection method yields good results, we show that removing neurons with the smallest average relevance -- in the sense of LRP -- allows the network to perform better.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\linewidth]{pruning-graph-large.png}
+    \includegraphics[width=\linewidth]{pruning-graph-large.png}
     \caption{Accuracy and loss evolution during network pruning for different neuron selection methods. Neurons were pruned on the first layer of the same fully-connected network trained on the MNIST dataset. Accuracy and loss are computed over the MNIST test set.}
     \label{fig:pruning-graph}
 \end{figure}
@@ -356,9 +374,9 @@ To evaluate to what extent LRP highlights pixels vulnerable to perturbations, we
 \end{equation}
 In other terms, the probability distribution is the softmax of the opposite of the relevance; the higher the relevance, the lower the probability that the pixel is affected by a perburbation.
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{attack-graph-1.png}
-    \includegraphics[width=\linewidth]{attack-graph-2.png}
+    \includegraphics[width=.95\linewidth]{attack-graph-1.png}
+    
+    \includegraphics[width=.95\linewidth]{attack-graph-2.png}
     \caption{Accuracy drop for multiple pixels attacks strategies. Lower graph represents the difference to the uniform baseline.}
     \label{fig:attack-graphs}
 \end{figure}
@@ -391,19 +409,19 @@ Classical LRP rules can be easily and efficiently implemented. A general rule en
     \label{eq:general-lrp-full}
 \end{equation}
 where $a=a^{(l)}$, $w=w^{(l)}$. Four steps, described in \cite{montavon-lrp}, allow for an efficient and effortless computation of relevance:
-\begin{equation}
+\begin{equation*}
     \begin{aligned}
         \textstyle\forall k: z_k &= \epsilon + \sum\nolimits_{j'}a_{j'}\cdot\rho(w_{j',k})\\
         \forall k: s_k &= R_k / z_k\\
         \forall j: c_j &= \sum\nolimits_k\rho(w_{j',k})\cdot s_k\\
         \forall j: \!R_j &= a_j\cdot c_j
     \end{aligned}
-\end{equation}
+\end{equation*}
 
 These steps provide two majors benefits. Firstly, it allows for the costly divisions by $z_k$ to be performed only once per $k$, independently of $j$. Secondly, the third step can be expressed as the computation of a gradient:
-\begin{equation}
+\begin{equation*}
     c_j = \left[\nabla\left(\sum\nolimits_k z_k(a^{(l)})\cdot s_k\right)\right]_j
-\end{equation}
+\end{equation*}
 where the gradient $\nabla$ is taken with respect to the vector $a^{(l)}$ and where the $s_k$ are treated as constants. This allows for a simple and efficient implementation, since the gradient can be computed using automatic differentiation: the high-level code is not only concise (two lines of PyTorch code), but also effortlessly generalizable  to any layer implementing backward pass, and highly optimized using GPU operations.
 
 \subsubsection{Implementing LRP without automatic differentiation}
@@ -439,7 +457,7 @@ At test time, normalization layers act as a linear operatioin, and can therefore
 \subsection{Results for the VGG-16 network}
 We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageNet-1K dataset, containing 1\,281\,167 images from 1\,000 classes. Its very deep architecture (see \autoref{fig:vgg-architecture}) makes it a challenging model for relevance propagation, since minor changes in the deeper layers can ruin the visualization of the first layers.
 
-A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{seq:thresholds-choice}.
+A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{sec:thresholds-choice}.
 
 \subsubsection{Boolean semiring}
 $\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
@@ -460,7 +478,7 @@ The Viterbi semiring relevance appears to scale poorly to deep convolutional neu
 % TODO: insert figure
 
 \subsection{Thresholds choice}
-\label{seq:thresholds-choice}
+\label{sec:thresholds-choice}
 Equations such as \ref{eq:boolean-lrp} and \ref{eq:counting-lrp} introduce thresholds which must be ajusted to provide meaningful explanation. Selecting such parameters optimally requires a proper definition of explanation quality, which is a separate research domain \cite{samek2016evaluating}. Nevertheless, only some ranges of threshold values guarantee a final result that is humanly interpretable. Threshold values that are too high result in visualizations containing little to no information; relevance is \say{lost} in the deepest layers and only a few input neurons are marked as relevant. Threshold values that are too low result in over-saturated visualizations; for instance, boolean relevance selects most neurons as relevant, loosing meaningful information in the amount of activated pixels.
 
 We propose threshold values, used in \autoref{fig:vgg-boolean}, that offer a balanced explanation. Modifiying these values by small amounts allow the user to choose between a more precise or more general explanation.
@@ -473,6 +491,7 @@ While those parameters were chosen manually, they appear to be correlated to par
 The general variation of thresholds follows the one of the kernel size of the layer: very low between the 37th and 31st layers, peaking at the 28th, and maintaining medium values between the 24th and first layers. The correlation between those two characteristics suggests a general rule to pick the thresholds, the detailled values of which are left to the user to pick its prefered explanation.
 
 \subsection{Notes on implementation}
+\label{sec:implementation}
 Finally, we provide some details on the implementation work associated with the previous results. All previous experimental results are implemented in Python, notably using the \href{https://pytorch.org}{\texttt{PyTorch}} and \href{https://numpy.org}{\texttt{NumPy}} modules. The integrality of the source code can be found at \href{https://github.com/Red-Rapious/Semiring-LRP}{\texttt{https://github.com/Red-Rapious/Semiring-LRP}}; LRP implementation is inspired by the code\footnote{\href{https://heatmapping.org/tutorial}{\texttt{https://heatmapping.org/tutorial}}} from the LRP review paper \cite{montavon-lrp}.
 
 A straighforward approach to implementing Semiring LRP into existing models is to define a custom \texttt{Semiring} class providing the different customizable elements:
@@ -523,7 +542,7 @@ We implemented Semiring-based LRP for PyTorch models containing Linear, Convolut
 Finally, we explored three examples of applications of semiring-based LRP: mask computation, network pruning, and vulnerable pixels detection. We believe that semiring-based LRP has the potential to provide more than an explanation for a single execution, and those applications tend to show that combining LRP results over multiple executions produces meaningful metrics for the overall relevance of neurons in the network. 
 
 \section*{Acknowldegements}
-I would like to thank Silviu Maniu for his guidance and support throughout this internship. I thank Pierre Senellart for his feedback and advices. Thanks to the LIG and specifically to the members of the SLIDE team. In particular, thanks to Alan Gany, Nassim Bouarour for their help, and thanks to Paul Landrier for his suggestions.
+I would like to thank Silviu Maniu, my advisor, for his guidance and support throughout this internship. I thank Pierre Senellart for his feedback and advices. Thanks to the LIG and specifically to the members of the SLIDE team. In particular, thanks to Alan Gany, Nassim Bouarour for their help, and thanks to Paul Landrier for his suggestions.
 
 \nocite{*}
 \printbibliography
