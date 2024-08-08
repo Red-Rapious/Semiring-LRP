@@ -470,16 +470,17 @@ We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageN
 A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{sec:thresholds-choice}.
 
 \subsubsection{Boolean semiring}
-$\B$-relevance over VGG-16 is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
+$\B$-relevance over VGG-16 (\autoref{fig:vgg-boolean}) is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
 
-While classical LRP provides a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center.
+While classical LRP provides a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center. From a human point of view, there is no reason to believe that the contours of the object are more relevant than the center of the object. Therefore, boolean LRP allows for a larger explanation that is closer to what a human would produce.
 
 \subsubsection{Counting semiring}
-Counting semiring produces an explanation qualitatively similar to classical LRP. 
+Counting semiring (\autoref{fig:vgg-counting}) produces an explanation qualitatively similar to classical LRP. Compared to Composite LRP, the choice of thresholds limits the propagation of relevance to provide a more localised explanation. This avoids the inclusion of less relevant elements such as the street light on top of the image.
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{vgg-counting.png}
     \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated using a sum, like for composite LRP.}
+    \label{fig:vgg-counting}
 \end{figure}
 
 \subsubsection{Viterbi semiring}
