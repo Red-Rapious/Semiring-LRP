@@ -121,7 +121,7 @@ where $(\cdot)^+=\max(0, \cdot)$, $(\cdot)^-=\min(0, \cdot)$. The parameters $l_
 
 Best results are obtained using \emph{Composite LRP} \cite{montavon-lrp}, a method in which a specific rule is used for each layer: deepest layers use LRP-0, intermediate layers use LRP-$\epsilon$, and lower layers LRP-$\gamma$. The fact that some rules are empirically better for different layers can be explained 
 
-\subsubsection{LRP results and pertinence}
+\subsubsection{Classical LRP results}
 Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods that we will introduce later on, were experimentaly tested on models trained over two datasets: fully-connected networks trained on the MNIST handwritten digits dataset \cite{mnist-dataset}, and deep convolutional networks pre-trained on the ImageNet visual database such as VGG-16 \cite{vgg}.
 
 \autoref{fig:mnist-lrp} shows relevance for a simple model: a fully-connected deep rectifier network with layers of sizes $28\times28$, $300$, $100$ and $10$, trained on the MNIST dataset. Pixels highlighted in red have a positive relevance while blue pixels have a negative relevance. As expected, the relevant pixels to classify this image as a \texttt{0} are the white pixels in the input image.
@@ -213,9 +213,19 @@ Note that choosing $(\R,+,\times,0,1)$ as a semiring and $\Theta^{(l)}=x\mapsto 
 
 Equations \ref{eq:semiring-lrp-init} and \ref{eq:semiring-lrp-rec} can be intuitively interpreted in two ways. Firstly, they can be seen as the abstraction of an LRP computation using formal semiring elements. Computing $\K$-relevance for an execution of the network results in an abstract formula in terms of elements of $\K$ and operations $\oplus$ and $\otimes$. While this might be useful in the context of graph provenance, visualizing abstract formulas is difficult because of the size of computational graphs associated to neural networks. Furthermore, the general structure of the formulas is always the same for a specific model, since neural networks usually have very simple computational graphs structures. 
 
-% TODO: add boolean circuit example figure
+\begin{figure}[H]
+    \centering
+    \input{weights-graph.tex}
+    \caption{A simple fully-connected neural network. The weights are represented on the edges.}
+\end{figure}
 
 Therefore, a second approach that fits the graph properties of neural networks is to interpret semiring LRP as operations on an annotated circuit, similarly to \cite{senellart2018provenance}. For instance, in the case of the boolean semiring, computing $\B$-relevance consists in taking for each node the logical conjunction of the annotations of its outgoing edges.
+
+\begin{figure}[H]
+    \centering
+    \input{boolean-graph.tex}
+    \caption{The same neural network where the edges have been annotated with elements of the boolean semiring.}
+\end{figure}
 
 Similarly to the implementation of provenance in databases by tools such as ProvSQL \cite{provsql}, we implemented a Python module on top of PyTorch\footnote{\href{https://pytorch.org}{\texttt{https://pytorch.org}}}, providing an interface to compute $\K$-relevance for any custom semiring $\K$. Details on the implementation are given in \autoref{sec:implementation}
 
@@ -347,11 +357,11 @@ The accuracy of modern neural networks often come at the cost of large model siz
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{pruning-graph-large.png}
-    \caption{Accuracy and loss evolution during network pruning for different neuron selection methods. Neurons were pruned on the first layer of the same fully-connected network trained on the MNIST dataset. Accuracy and loss are computed over the MNIST test set.}
+    \caption{Accuracy and loss evolution during network pruning for different neuron selection methods.}
     \label{fig:pruning-graph}
 \end{figure}
 
-\autoref{fig:pruning-graph} compares multiple selection methods. For each method, the network was evaluated multiple times on a subset of the MNIST test set, each time with an increasing number of neurons pruned, selected using the specific method. For LRP-based methods, the relevance of each neuron is computed by taking its average relevance on LRP results over images of the train set, and neurons with the lowest absolute relevance are pruned first.
+\autoref{fig:pruning-graph} compares multiple selection methods. For each method, the network was evaluated multiple times on a subset of the MNIST test set, each time with an increasing number of neurons pruned from the first layer, selected using the specific method. For LRP-based methods, the relevance of each neuron is computed by taking its average relevance on LRP results over images of the train set, and neurons with the lowest absolute relevance are pruned first.
 
 Three curve clusters can be identified: boolean and counting LRP perform much worse than other selection methods, which can be explained by the lack of granularity in the explanation that these techniques provide. $\ell_1$ and $\ell_2$ norm selection methods provide a baseline to compare LRP techniques to, and both perform similarly well. Finally, classic LRP and Viterbi LRP outperform the norm-based methods by a small amount: this confirms the intuition that LRP provide a more subtle explanation than simply the magnitude of the weights connected to a neuron.
 
@@ -551,12 +561,16 @@ Finally, scalability raises the challenge of performance, as the current high-le
 
 %Finally, we explored three examples of applications of semiring-based LRP: mask computation, network pruning, and vulnerable pixels detection. We believe that semiring-based LRP has the potential to provide more than an explanation for a single execution, and those applications tend to show that combining LRP results over multiple executions produces meaningful metrics for the overall relevance of neurons in the network. 
 
+\addcontentsline{toc}{section}{Acknowldgements}
 \section*{Acknowldegements}
 I would like to thank Silviu Maniu, my advisor, for his guidance and support throughout this internship. I thank Pierre Senellart for his feedback and advices. Thanks to the LIG and specifically to the members of the SLIDE team. In particular, thanks to Alan Gany, Nassim Bouarour for their help, and thanks to Paul Landrier for his suggestions.
 
+\addcontentsline{toc}{section}{References}
 \nocite{*}
 \printbibliography
 
+\newpage
+\vfill\null
 \newpage
 
 \begingroup
