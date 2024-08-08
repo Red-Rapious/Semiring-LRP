@@ -151,8 +151,6 @@ Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods t
 \footnotetext{Image from the overview paper \cite{montavon-lrp}.}
 Note that the castle part of the image is highlighted in red as intended. Furthermore, both the street sign and the street light have strong negative relevance; those two objects correspond to other classes of the ImageNet dataset (\texttt{street sign (919)} and \texttt{traffic light (920)}). Those two elements of the image would have positive relevance for LRP starting from the output neurons \texttt{919} and \texttt{920}.
 
-% TODO: double MNIST?
-
 \subsection{Semiring-based provenance annotations}
 In parallel, the notion of data provenance in databases theory developed formal solutions to a similar problem to ours. Data provenance aims at \emph{explaning} a query by highlighting the tuples in the original database that led to the presence of a certain tuple in the query result. If contexts are different, deep neural networks explanation and data provenance share the same general setup: identifying a subset of the input that directly implied a certain output.
 
@@ -215,8 +213,9 @@ Note that choosing $(\R,+,\times,0,1)$ as a semiring and $\Theta^{(l)}=x\mapsto 
 
 Equations \ref{eq:semiring-lrp-init} and \ref{eq:semiring-lrp-rec} can be intuitively interpreted in two ways. Firstly, they can be seen as the abstraction of an LRP computation using formal semiring elements. Computing $\K$-relevance for an execution of the network results in an abstract formula in terms of elements of $\K$ and operations $\oplus$ and $\otimes$. While this might be useful in the context of graph provenance, visualizing abstract formulas is difficult because of the size of computational graphs associated to neural networks. Furthermore, the general structure of the formulas is always the same for a specific model, since neural networks usually have very simple computational graphs structures. 
 
-Therefore, a second approach that fits the graph properties of neural networks is to interpret semiring LRP as operations on an annotated circuit, similarly to \cite{senellart2018provenance}. For instance, in the case of the boolean semiring, computing $\B$-relevance consists in taking for each node the logical conjunction of the annotations of its outgoing edges.
 % TODO: add boolean circuit example figure
+
+Therefore, a second approach that fits the graph properties of neural networks is to interpret semiring LRP as operations on an annotated circuit, similarly to \cite{senellart2018provenance}. For instance, in the case of the boolean semiring, computing $\B$-relevance consists in taking for each node the logical conjunction of the annotations of its outgoing edges.
 
 Similarly to the implementation of provenance in databases by tools such as ProvSQL \cite{provsql}, we implemented a Python module on top of PyTorch\footnote{\href{https://pytorch.org}{\texttt{https://pytorch.org}}}, providing an interface to compute $\K$-relevance for any custom semiring $\K$. Details on the implementation are given in \autoref{sec:implementation}
 
@@ -434,7 +433,7 @@ Notice that the sum of contributions of one neuron to the output can be expresse
 \end{equation*}
 the sum in the denominator, $\sum_{j'}z_{j',k}$, can be expressed as a forward pass of the convolutional layer, that is a convolution over the input; in contrast, the main sum, $\sum_k$, can be expressed as a convolution over the output relevance.
 
-% TODO
+% TODO: more on LRP convolution
 
 \subsubsection{Other CNN layers}
 Most deep convolutional neural networks contain other special layers. We provide a general description of how these were handled in our experiments on the VGG-16 model.
@@ -476,7 +475,7 @@ Counting semiring produces an explanation qualitatively similar to classical LRP
 \subsubsection{Viterbi semiring}
 The Viterbi semiring relevance appears to scale poorly to deep convolutional neural networks. Comparatively to counting or boolean semirings, it does not use thresholds to limit the spread of relevance during convolutions, which leads to the uniformization of relevance throughout the image.
 
-% TODO: insert figure
+% TODO: insert Viterbi figure
 
 \subsection{Thresholds choice}
 \label{sec:thresholds-choice}
@@ -515,7 +514,7 @@ class Semiring:
 \end{minted}
 Note that the methods \mintinline{python}{__add__} and \mintinline{python}{__mul__} overload the operations $+$ and $\times$, and allow to directly write expressions such as \mintinline{python}{a + b} where \mintinline{python}{a} and \mintinline{python}{b} are elements of the class \mintinline{ocaml}{Semiring}.
 
-LRP initialization can be written using the \mintinline{python}{zero} and \mintinline{python}{one} class methods. One propagation step of the form \autoref{eq:general-lrp-full} can be computed using:
+LRP initialization can be written using the \mintinline{python}{zero} and \mintinline{python}{one} class methods. One propagation step of the form of \autoref{eq:general-lrp-full} can be computed using:
 \begin{minted}[mathescape=true]{python}
 # Apply $\rho$ to the weigts and biases
 w = rho(W[l], l)
@@ -559,6 +558,14 @@ I would like to thank Silviu Maniu, my advisor, for his guidance and support thr
 \printbibliography
 
 \newpage
+
+\begingroup
+\hypersetup{hidelinks}
+\tableofcontents
+\newpage
+\listoffigures
+\endgroup
+
 \appendix
 
 \end{document}
