@@ -248,6 +248,7 @@ where $\theta$ is a hyperparameter called the threshold. A higher threshold redu
     \centering
     \includegraphics[width=.9\linewidth]{boolean.png}
     \caption{Input image and $\B$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$.}
+    \label{fig:mnist-boolean}
 \end{figure}
 
 The full propagation equation becomes:
@@ -271,7 +272,7 @@ The counting semiring $(\mathbb{N}, +, \times, 0, 1)$ extends boolean relevance 
         \end{cases*}
     \end{aligned}
 \end{equation*}
-but operations $+$ and $\times$ bring more expressivity to the framework, bringing more nuance in the highlighted zones.
+but operations $+$ and $\times$ bring more expressivity to the framework, bringing more nuance in the highlighted zones. For small networks like the one studied, the number of relevant paths from input to output neurons appears to be roughly the same, making the final result qualitatively similar to \autoref{fig:mnist-boolean}.
 
 \begin{figure}[H]
     \centering
@@ -368,11 +369,11 @@ Three curve clusters can be identified: boolean and counting LRP perform much wo
 \subsection{Comparison to image perturbation}
 In parallel to LRP, other methods aiming at providing a visual explanation of the decision of a classifier have emerged, such as \cite{inverting,visualizing-cnn}. An interesting approach, introduced in \cite{fong2017interpretable}, identifies pixels relevant to the classification by adding perturbations to the image. Intuitively, a pixel is relevant if the classification of the image changes when this pixel is modified. 
 
-In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. 
+In \autoref{fig:mnist-attack}, we reproduced this idea by measuring the accuracy drop when different regions of the image are perturbed. Zones of the image of size $4\times4$ are modified by applying the transformation $x\longleftarrow255-x$ for pixels $x$ with values in the $\iset{0}{255}$ range. Darker zones show drops of accuracies when this zone of the image is perturbed.
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{attacks.png}
-    \caption{Accuracy sensibility to perturbation by spatial region of the image. Darker zones show drops of accuracies when this zone of the image is perturbed.}
+    \caption{Accuracy sensibility to perturbation by spatial region of the image. }
     \label{fig:mnist-attack}
 \end{figure}
 This results in a visualization of the critical zones of the image, qualitatively different from LRP. While LRP highlights the zones containing the classified object, perturbation methods mostly selects zones outside of the object, where change can lead to confusion with another class: for instance, the zone above the \texttt{4} is strongly highlighted since perburbation in this area might trick the model into believing that the digit is a \texttt{9} instead.
@@ -461,7 +462,7 @@ At test time, normalization layers act as a linear operatioin, and can therefore
 \begin{figure*}
     \centering
     \includegraphics[width=.8\linewidth]{vgg-boolean.png}
-    \caption{$\B$-relevance of the class \texttt{castle}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.}
+    \caption{$\B$-relevance of the class \texttt{castle}.}
     \label{fig:vgg-boolean}
 \end{figure*}
 \subsection{Results for the VGG-16 network}
@@ -470,7 +471,7 @@ We conducted experiments on the VGG-16 network \cite{vgg}, trained on the ImageN
 A necessary ajustement compared to the simpler fully-connected neural networks is to be able to choose a different annotation function for each layer. Instead of using the same $\Theta$ at every layer, a family of functions $(\Theta^{(l)})_l$ is used. In practice, since we used threshold-based annotation functions, this means that each layer will have a different threshold. We discuss the choice of thresholds and the correlation to other parameters of the network in \autoref{sec:thresholds-choice}.
 
 \subsubsection{Boolean semiring}
-$\B$-relevance over VGG-16 (\autoref{fig:vgg-boolean}) is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}.
+$\B$-relevance over VGG-16 (\autoref{fig:vgg-boolean}) is coherent with results on the MNIST dataset: it specifies a main zone of importance in the image, similarly to explainations of tools such as Grad-CAM \cite{gradcam}. The input layer having three channels (R, G, B), they are aggregated using OR/AND operations.
 
 While classical LRP provides a more precise explanation by focusing on the contours of the relevant object, $\B$-relevance selects all the pixels of the object, including its center. From a human point of view, there is no reason to believe that the contours of the object are more relevant than the center of the object. Therefore, boolean LRP allows for a larger explanation that is closer to what a human would produce.
 
@@ -479,14 +480,27 @@ Counting semiring (\autoref{fig:vgg-counting}) produces an explanation qualitati
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{vgg-counting.png}
-    \caption{$\N$-relevance of the class \texttt{castle}. The three channels are aggregated using a sum, like for composite LRP.}
+    \caption{$\N$-relevance of the class \texttt{castle}.}
     \label{fig:vgg-counting}
 \end{figure}
 
 \subsubsection{Viterbi semiring}
-The Viterbi semiring relevance appears to scale poorly to deep convolutional neural networks. Comparatively to counting or boolean semirings, it does not use thresholds to limit the spread of relevance during convolutions, which leads to the uniformization of relevance throughout the image.
+The Viterbi semiring relevance appears to scale poorly to deep convolutional neural networks. Comparatively to counting or boolean semirings, it does not use thresholds to limit the spread of relevance during convolutions, which leads to the uniformization of relevance throughout the image. Therefore, the explanation obtained on the input layer is not humanly interpretable, as it concentrated on a very small number of pixels -- pixels that aren't even relevant to the classification.
 
-% TODO: insert Viterbi figure
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{vgg-viterbi-0.png}
+    \caption{Viterbi relevance of the class \texttt{castle} for the layer 0.}
+\end{figure}
+
+Nevertheless, an interesting aspect of CNNs is that the intermediate LRP results are also visualizable, since they respect spatial information. We can therefore display the relevance for a deep layer (in \autoref{fig:vgg-viterbi-28}, the 28th layer) to understand why the relevance propagation failed with this semiring.\footnote{Note that it remains harder to interpret deeper layers because of the way that channels are aggregated: here, we always fuzed channels by summing them, but this approach works better for 3 channels (input layer) than for 512 channels (28th layer).}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{vgg-viterbi-28.png}
+    \caption{Viterbi relevance of the class \texttt{castle} for the layer 28.}
+    \label{fig:vgg-viterbi-28}
+\end{figure}
+In this case, we can see that even at the begining of the propagation, the relevance is already spread out in the image. Information about the specific zone of the castle is already lost, and cannot be recovered by the lowest layers.
 
 \subsection{Thresholds choice}
 \label{sec:thresholds-choice}
@@ -574,8 +588,8 @@ I would like to thank Silviu Maniu, my advisor, for his guidance and support thr
 \printbibliography
 
 \newpage
-\vfill\null
-\newpage
+% \vfill\null
+% \newpage
 
 \begingroup
 \hypersetup{hidelinks}
