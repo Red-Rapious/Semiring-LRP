@@ -129,7 +129,7 @@ Previous works (\cite{bach-2015}, \cite{montavon-lrp}), as well as the methods t
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\linewidth]{mnist-lrp.png}
-    \caption{Input image and pixel-wise explanation of the output neuron \texttt{0}}
+    \caption{Input image and pixel-wise explanation of the output neuron \texttt{0}.}
     \label{fig:mnist-lrp}
 \end{figure}
 
@@ -247,7 +247,7 @@ where $\theta$ is a hyperparameter called the threshold. A higher threshold redu
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\linewidth]{boolean.png}
-    \caption{Input image and $\B$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$}
+    \caption{Input image and $\B$-relevance for the output neuron \texttt{0} for $\theta=10^{-9}$.}
 \end{figure}
 
 The full propagation equation becomes:
@@ -291,7 +291,7 @@ The Viterbi semiring $([0, 1], \max, \times, 0, 1)$ replaces the $+$ of the clas
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\linewidth]{viterbi.png}
-    \caption{Input image and $[0, 1]$-relevance for the output neuron \texttt{0}}
+    \caption{Input image and $[0, 1]$-relevance for the output neuron \texttt{0}.}
 \end{figure}
 To ensure that values belong to the $[0, 1]$ set, the following rule is used:
 \begin{equation}
@@ -308,7 +308,7 @@ The simplest setup consists in computing a \say{mask} by combining mulitple rele
 \begin{figure}[H]
     \centering
     \includegraphics[width=.9\linewidth]{boolean-mask.png}
-    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}}
+    \caption{Class-wise mask for $\B$-relevance of the class \texttt{0}.}
     \label{fig:boolean-mask}
 \end{figure}
 The same method also provides information on the internal neurons of the network that were used in the final classification. We believe that this technique can be used in the identification of \emph{circuits} inside the neural network \cite{circuits}, that is computational subgraphs of the network mostly responsible for one specific behavior of the model.
