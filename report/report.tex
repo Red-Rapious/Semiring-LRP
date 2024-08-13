@@ -505,22 +505,25 @@ The general variation of thresholds follows the one of the kernel size of the la
 \label{sec:implementation}
 Finally, we provide some details on the implementation work associated with the previous results. All previous experimental results are implemented in Python, notably using the \href{https://pytorch.org}{\texttt{PyTorch}} and \href{https://numpy.org}{\texttt{NumPy}} modules. The integrality of the source code can be found at \href{https://github.com/Red-Rapious/Semiring-LRP}{\texttt{https://github.com/Red-Rapious/Semiring-LRP}}; LRP implementation is inspired by the code\footnote{\href{https://heatmapping.org/tutorial}{\texttt{https://heatmapping.org/tutorial}}} from the LRP review paper \cite{montavon-lrp}.
 
+A tutorial, in the form of a Jupyter Notebook, is available \href{https://github.com/Red-Rapious/Semiring-LRP/tutorial/tutorial.ipynb}{on GitHub}\footnote{\href{https://github.com/Red-Rapious/Semiring-LRP/tutorial/tutorial.ipynb}{\nolinkurl{https://github.com/Red-Rapious/Semiring-LRP/tutorial/tutorial.ipynb}}}. It details a \texttt{NumPy}-based implementation of Semiring LRP for an MNIST MLP and VGG-16.
+
 A straighforward approach to implementing Semiring LRP into existing models is to define a custom \texttt{Semiring} class providing the different customizable elements:
-\begin{minted}{python}
+\begin{minted}[mathescape=true]{python}
 class Semiring:
-    def __add__(self, b):
+    # for annotation
+    def __init__(x): # $\Theta$
         return ...
 
-    def __mul__(self, b):
+    def __add__(self, b): # $\oplus$
         return ...
 
-    def zero():
+    def __mul__(self, b): # $\otimes$
         return ...
 
-    def one():
+    def zero(): # $\0$
         return ...
 
-    def annotate(layer, d):
+    def one(): # $\1$
         return ...
 \end{minted}
 Note that the methods \mintinline{python}{__add__} and \mintinline{python}{__mul__} overload the operations $+$ and $\times$, and allow to directly write expressions such as \mintinline{python}{a + b} where \mintinline{python}{a} and \mintinline{python}{b} are elements of the class \mintinline{ocaml}{Semiring}.
