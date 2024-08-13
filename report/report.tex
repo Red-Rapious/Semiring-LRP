@@ -550,7 +550,7 @@ R[l] = d @ R[l+1]
 
 A similar implementation for convolutional layers can be implemented by coding the convolution process by hand.
 
-Note that relying on high-level Python code yields poor performance, especially compared to the gradient-based implementation described in \autoref{eq:grad-lrp}. Such a problem could be avoided with a lower-level implementation in the core of \texttt{Pytorch}, similarly to the implementation of ProvSQL \cite{provsql}.
+Note that relying on high-level Python code yields poor performance, especially compared to the gradient-based implementation described in \autoref{eq:grad-lrp}. Such a problem could be avoided with a lower-level implementation in the core of \texttt{PyTorch}, similarly to the implementation of ProvSQL \cite{provsql}.
 
 \section{Conclusion}
 We introduced Semiring-based Layer-wise Relevance Propagation to extend LRP to a broader range of explanations. Semiring-based LRP benefits from the capabilities of classical LRP, while letting the user choose customized semirings for explanations that better suit the applications of its model. Experimentally, boolean and counting semirings provide scalable explanations that qualitatively differ from classical LRP.
