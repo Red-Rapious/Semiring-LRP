@@ -380,17 +380,20 @@ This results in a visualization of the critical zones of the image, qualitativel
 
 To evaluate to what extent LRP highlights pixels vulnerable to perturbations, we studied the impact of modifications in the zones of high relevance compared to low relevance zones. To do so, we measured the accuracy of the model while progressively perturbating more and more pixels of the image. In \autoref{fig:attack-graphs}, we compare the accuracy of the model when pixels are uniformly selected in the image, to the accuracy when pixels are selected with a probability distribution depending on the relevance. If $X$ is the random variable corresponding to the pixel selected to be modified, then:
 \begin{equation}
-    \P(X=i) = \frac{e^{-R_i}}{\sum_je^{-R_j}}
+    \P(X=i) = \frac{e^{-\eta\cdot R_i}}{\sum_je^{-\eta\cdot R_j}}
 \end{equation}
 In other terms, the probability distribution is the softmax of the opposite of the relevance; the higher the relevance, the lower the probability that the pixel is affected by a perburbation.
+In this formula, $\eta$ is a \emph{relevance factor}, quantifying how much relevant pixels should be avoided compared to non-relevant pixels. This is especially important for semirings where the relevance values are close to 1, like the boolean or Viterbi semirings.
 \begin{figure}[H]
-    \includegraphics[width=.95\linewidth]{attack-graph-1.png}
+    \includegraphics[width=.9\linewidth]{attack-graph-1.png}
     
-    \includegraphics[width=.95\linewidth]{attack-graph-2.png}
+    \includegraphics[width=.9\linewidth]{attack-graph-2.png}
     \caption{Accuracy drop for multiple pixels attacks strategies. Lower graph represents the difference to the uniform baseline.}
     \label{fig:attack-graphs}
 \end{figure}
-Results of \autoref{fig:attack-graphs} show that all LRP distributions outperform the uniform baseline. While LRP does not directly highlight vulnerable pixels, pixels with less relevance are most likely to be resilient to perturbations.
+Results of \autoref{fig:attack-graphs} show that all LRP distributions outperform the uniform baseline. The Viterbi semiring performs worse than all the other LRP distributions, because of the important constrast between relevance scores. While highly relevant pixels are very unlikely to be attacked, some pixels with a low but non-zero relevance can still be attacked with a high probability.
+
+To conclude, this experiment shows that while LRP does not directly highlight vulnerable pixels, pixels with less relevance are most likely to be resilient to perturbations.
 
 
 \begin{figure*}
