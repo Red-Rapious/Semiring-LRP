@@ -1,4 +1,4 @@
-# L3-Internship
+# Semiring-LRP
 Code, report, and slides for my L3 Internship "Extending Layer-wise Relevance Propagation using Semiring Annotations" at [LIG](https://www.liglab.fr/en).
 
 ## Report
