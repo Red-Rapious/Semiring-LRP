@@ -12,13 +12,13 @@ The Jupyter Notebook tutorial showcasing both the code and results of the intern
 
 ## Results showcase
 ### Figure 1: *Boolean LRP applied to an MLP trained on the MNIST dataset*
-![](images/boolean.png)
+<img src="images/boolean.png" alt="boolean" width="800px"/>
 
 ### Figure 2: *Viterbi LRP applied to an MLP trained on the MNIST dataset*
-![](images/viterbi.png)
+<img src="images/viterbi.png" alt="viterbi" width="800px"/>
 
 ### Figure 3: *Boolean LRP applied to VGG-16*
-![](images/vgg-boolean.png)
+<img src="images/vgg-boolean.png" alt="vgg-boolean" width="800px"/>
 
 ### Figure 3: *LRP with the counting semiring applied to VGG-16*
-![](images/vgg-counting.png)
+<img src="images/vgg-counting.png" alt="vgg-counting" width="800px"/>
