@@ -6,7 +6,28 @@
     \hspace{1em}%
     \raisebox{1.4pt}[0pt][0pt]{\insertframenumber/\inserttotalframenumber}
 }
-\setbeamercolor{footline}{fg=blue!50}
+
+\definecolor{primarycolor}{HTML}{980404}
+
+\makeatletter
+
+\def\sectioncolor{primarycolor}% color to be applied to section headers
+
+\setbeamercolor{palette primary}{use=structure,fg=structure.fg}
+\setbeamercolor{palette secondary}{use=structure,fg=structure.fg!75!black}
+\setbeamercolor{palette tertiary}{use=structure,fg=structure.fg!50!black}
+\setbeamercolor{palette quaternary}{fg=black}
+
+\setbeamercolor{local structure}{fg=primarycolor}
+\setbeamercolor{structure}{fg=primarycolor}
+\setbeamercolor{title}{fg=primarycolor}
+\setbeamercolor{section in head/foot}{fg=black}
+
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{block title alerted}{fg=red}
+\setbeamercolor{block title example}{fg=primarycolor}
+
+\setbeamercolor{footline}{fg=primarycolor!50}
 \setbeamerfont{footline}{series=\bfseries}
 
 \DeclareMathAlphabet{\digitsbb}{U}{bbold}{m}{n}
