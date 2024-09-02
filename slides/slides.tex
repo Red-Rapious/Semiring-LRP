@@ -331,11 +331,11 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{All classes mask -- Counting semiring}
-    \begin{figure}
-        \includegraphics[width=.6\textwidth]{counting-mask-all.png}
-    \end{figure}
-\end{frame}
+% \begin{frame}{All classes mask -- Counting semiring}
+%     \begin{figure}
+%         \includegraphics[width=.6\textwidth]{counting-mask-all.png}
+%     \end{figure}
+% \end{frame}
 
 \begin{frame}{Comparison to dataset mean}
     \begin{figure}
@@ -375,14 +375,15 @@
 
 \begin{frame}
     \begin{figure}[H]
-        \hspace*{-.5cm}
+        \centering
+        \vspace*{.5cm}
         \begin{minipage}{.49\textwidth}
             \centering
-            \includegraphics[width=1.1\textwidth]{attack-graph-1.png}
+            \includegraphics[width=1\textwidth]{attack-graph-1.png}
         \end{minipage}
         \begin{minipage}{.49\textwidth}
             \centering
-            \includegraphics[width=1.1\textwidth]{attack-graph-2.png}
+            \includegraphics[width=1\textwidth]{attack-graph-2.png}
         \end{minipage}
         \caption{Accuracy drop for multiple pixels attacks strategies.}
         \label{fig:attack-graphs}
@@ -394,11 +395,12 @@
 \begin{frame}{Computing relevance for convolutional layers}
     \begin{equation}
         \tag{$\mathbb{K}$-LRP}
-        R^{(l)}_j = \overbrace{
+        \Large
+        {R^{(l)}_j = \overbrace{
             \bigoplus_k \underbrace{\Theta\left(
                 \frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}}
             \right)}
-            _{\text{Convolution over layer $l$}} \otimes\, R^{(l+1)}_k}^{\text{Convolution over layer $l+1$}}
+            _{\text{Convolution over layer $l$}} \otimes\, R^{(l+1)}_k}^{\text{\normalsize Convolution over layer $l+1$}}}
     \end{equation}
 \end{frame}
 
