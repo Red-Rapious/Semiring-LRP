@@ -1,5 +1,6 @@
 \documentclass[aspectratio=169]{beamer}
 \usetheme{Singapore}
+\setbeamertemplate{caption}[numbered]
 \addtobeamertemplate{navigation symbols}{}{%
     \usebeamerfont{footline}%
     \usebeamercolor[fg]{footline}%
@@ -59,6 +60,7 @@
 ]{biblatex}
 \usepackage{graphicx}
 \usepackage[justification=centering]{caption}
+\usepackage{csquotes}
 
 \graphicspath{{../images/}}
 
@@ -158,6 +160,7 @@
 \begin{frame}{Layerwise Relevance Propagation}{Propagation}
     LRP-0 rule:
     \begin{equation}
+        \tag{LRP-0}
         R^{(l)}_j = \sum_{k}\frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} \cdot R^{(l+1)}_k
     \end{equation}
     \begin{figure}
@@ -237,16 +240,7 @@
 \end{frame}
 
 \section{Extending LRP}
-% \begin{frame}{Simplifying LRP rule}
-%     Remove the denominator:
-%     \begin{equation*}
-%         R^{(l)}_j = \sum_k\frac{a^{(l)}_jw_{j, k}^{(l)}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}^{(l)}} R^{(l+1)}_k \quad \longrightarrow \quad R^{(l)}_j = \sum_{k} a^{(l)}_jw_{j, k}^{(l)} \cdot R^{(l+1)}_k
-%     \end{equation*}
-%     \newline{}
-%     Use only LRP-0 rule (no $\varepsilon$, $\gamma$, $z^\mathcal{B}$, \dots)
-% \end{frame}
-
-\subsection{Rules modification}
+\subsection{Semiring generalization of the LRP rule}
 \begin{frame}{Semiring generalization of the LRP rule}
     Consider a semiring $(\mathbb{K}, \oplus, \otimes, \digitsbb{0}, \digitsbb{1})$
 
@@ -263,13 +257,14 @@
     \end{equation}
     Propagation rule:
     \begin{equation}
+        \tag{$\mathbb{K}$-LRP}
         R^{(l)}_j = \bigoplus_k \Theta\left(
             \frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}} 
         \right) \otimes R^{(l+1)}_k
     \end{equation}
 \end{frame}
 
-\subsection{MNIST dataset}
+\subsection{Results over the MNIST dataset}
 \begin{frame}{Boolean Semiring}{\large $(\{\bot, \top\}, \lor, \land, \bot, \top)$}
     \begin{equation*}
         \Theta = x \longmapsto \begin{cases*}
@@ -313,21 +308,6 @@
     \begin{figure}[H]
         \centering
         \includegraphics[width=.5\textwidth]{viterbi.png}
-    \end{figure}
-\end{frame}
-
-\subsection{VGG-16 network}
-\begin{frame}{Boolean semiring}
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=\textwidth]{vgg-boolean.png}
-    \end{figure}
-\end{frame}
-
-\begin{frame}{Counting semiring}
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=.8\textwidth]{vgg-counting.png}
     \end{figure}
 \end{frame}
 
@@ -406,6 +386,43 @@
         \end{minipage}
         \caption{Accuracy drop for multiple pixels attacks strategies.}
         \label{fig:attack-graphs}
+    \end{figure}
+\end{frame}
+
+\section{Handling CNNs}
+\subsection{Computing relevance for convolutional layers}
+\begin{frame}{Computing relevance for convolutional layers}
+    \begin{equation}
+        \tag{$\mathbb{K}$-LRP}
+        R^{(l)}_j = \overbrace{
+            \bigoplus_k \underbrace{\Theta\left(
+                \frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}}
+            \right)}
+            _{\text{Convolution over layer $l$}} \otimes\, R^{(l+1)}_k}^{\text{Convolution over layer $l+1$}}
+    \end{equation}
+\end{frame}
+
+\begin{frame}{VGG-16 network}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.9\textwidth]{../report/figures/report-figure3.pdf}
+        \caption{Architecture of the VGG-16 network.}
+        \label{fig:vgg-architecture}
+    \end{figure}
+\end{frame}
+
+\subsection{Results for the VGG-16 network}
+\begin{frame}{Results for VGG-16: Boolean semiring}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{vgg-boolean.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Results for VGG-16: Counting semiring}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.8\textwidth]{vgg-counting.png}
     \end{figure}
 \end{frame}
 
