@@ -79,6 +79,8 @@
 \theoremstyle{definition}
 \newtheorem*{exemple}{Example}
 
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
 
 
 \title{\textbf{Extending Layerwise Relevance Propagation using Semiring Annotations}}
@@ -274,6 +276,22 @@
     \end{equation}
 \end{frame}
 
+\begin{frame}{Semiring generalization of the LRP rule}
+    \begin{figure}[ht]
+        \begin{minipage}[c]{0.45\linewidth}
+            \centering
+            \input{../report/weights-graph.tex}
+            \caption{Original network}
+        \end{minipage}
+        \hspace{0.25cm}
+        \begin{minipage}[c]{0.45\linewidth}
+            \centering
+            \input{../report/boolean-graph.tex}
+            \caption{Annotated network (Boolean)}
+        \end{minipage}
+    \end{figure}
+\end{frame}
+
 \subsection{Results over the MNIST dataset}
 \begin{frame}{Boolean Semiring}{\large $(\{\bot, \top\}, \lor, \land, \bot, \top)$}
     \begin{equation*}
@@ -321,6 +339,46 @@
     \end{figure}
 \end{frame}
 
+
+\section{Handling CNNs}
+\subsection{Computing relevance for convolutional layers}
+\begin{frame}{VGG-16 network}
+    \begin{figure}
+        \centering
+        \includegraphics[width=.9\textwidth]{../report/figures/report-figure3.pdf}
+        \caption{Architecture of the VGG-16 network.}
+        \label{fig:vgg-architecture}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Computing relevance for convolutional layers}
+    \begin{equation}
+        \tag{$\mathbb{K}$-LRP}
+        \Large
+        {R^{(l)}_j = \overbrace{
+            \bigoplus_k \underbrace{\Theta\left(
+                \frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}}
+            \right)}
+            _{\text{Convolution over layer $l$}} \otimes\, R^{(l+1)}_k}^{\text{\normalsize Convolution over layer $l+1$}}}
+    \end{equation}
+\end{frame}
+
+\subsection{Results for the VGG-16 network}
+\begin{frame}{Results for VGG-16: Boolean semiring}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{vgg-boolean.png}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Results for VGG-16: Counting semiring}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.8\textwidth]{vgg-counting.png}
+    \end{figure}
+\end{frame}
+
+
 \section{Applications}
 \subsection{Image mask computation}
 \begin{frame}{Class-wise mask -- Boolean semiring}
@@ -329,17 +387,17 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{All classes mask -- Boolean semiring}
-    \begin{figure}
-        \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
-    \end{figure}
-\end{frame}
+% \begin{frame}{All classes mask -- Boolean semiring}
+%     \begin{figure}
+%         \includegraphics[width=.5\textwidth]{boolean-mask-all.png}
+%     \end{figure}
+% \end{frame}
 
-\begin{frame}{Class-wise mask -- Counting semiring}
-    \begin{figure}
-        \includegraphics[width=.75\textwidth]{counting-mask.png}
-    \end{figure}
-\end{frame}
+% \begin{frame}{Class-wise mask -- Counting semiring}
+%     \begin{figure}
+%         \includegraphics[width=.75\textwidth]{counting-mask.png}
+%     \end{figure}
+% \end{frame}
 
 % \begin{frame}{All classes mask -- Counting semiring}
 %     \begin{figure}
@@ -347,11 +405,11 @@
 %     \end{figure}
 % \end{frame}
 
-\begin{frame}{Comparison to dataset mean}
-    \begin{figure}
-        \includegraphics[width=.7\textwidth]{dataset-relevance-cmp.png}
-    \end{figure}
-\end{frame}
+% \begin{frame}{Comparison to dataset mean}
+%     \begin{figure}
+%         \includegraphics[width=.7\textwidth]{dataset-relevance-cmp.png}
+%     \end{figure}
+% \end{frame}
 
 \subsection{Network pruning using LRP ranking}
 \begin{frame}{Network pruning using LRP ranking}
@@ -400,43 +458,16 @@
     \end{figure}
 \end{frame}
 
-\section{Handling CNNs}
-\subsection{Computing relevance for convolutional layers}
-\begin{frame}{Computing relevance for convolutional layers}
-    \begin{equation}
-        \tag{$\mathbb{K}$-LRP}
-        \Large
-        {R^{(l)}_j = \overbrace{
-            \bigoplus_k \underbrace{\Theta\left(
-                \frac{a^{(l)}_jw_{j, k}}{\sum_{j'}a^{(l)}_{j'}w_{j', k}}
-            \right)}
-            _{\text{Convolution over layer $l$}} \otimes\, R^{(l+1)}_k}^{\text{\normalsize Convolution over layer $l+1$}}}
-    \end{equation}
+\section*{Conclusion}
+\begin{frame}{Conclusion}
+    \begin{itemize}[label=\textbullet]
+        \item We extended the Layerwise Relevance Propagation method to semirings
+        \item We applied this method to the MNIST dataset and the VGG-16 network
+        \item We showed that the method can be used for image mask computation and network pruning
+        \item We compared our method to image perturbation attacks
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{VGG-16 network}
-    \begin{figure}
-        \centering
-        \includegraphics[width=.9\textwidth]{../report/figures/report-figure3.pdf}
-        \caption{Architecture of the VGG-16 network.}
-        \label{fig:vgg-architecture}
-    \end{figure}
-\end{frame}
-
-\subsection{Results for the VGG-16 network}
-\begin{frame}{Results for VGG-16: Boolean semiring}
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=\textwidth]{vgg-boolean.png}
-    \end{figure}
-\end{frame}
-
-\begin{frame}{Results for VGG-16: Counting semiring}
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=.8\textwidth]{vgg-counting.png}
-    \end{figure}
-\end{frame}
 
 \begin{frame}[allowframebreaks]
     \nocite{*}
